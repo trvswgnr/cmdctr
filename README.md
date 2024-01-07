@@ -1,9 +1,11 @@
 # Command Center
 
-Command Center (`cmdctr`) is a TypeScript project that provides a simple and flexible way to create command line interfaces (CLI). It allows you to define tasks with specific options and actions, and then run these tasks from the command line.
+Command Center (`cmdctr`) is a TypeScript project that provides a simple and flexible way to create
+command line interfaces (CLI). It allows you to define tasks with specific options and actions, and
+then run these tasks from the command line. Type safety is built in, so you can be sure that your
+tasks are being run with the correct options.
 
-> [!WARNING]
-> This project is still in early development and is not ready for production use.
+> [!WARNING] This project is still in early development and is not ready for production use.
 
 ## Installation
 
@@ -25,7 +27,8 @@ Command Center provides three main functions: `CmdCtr`, `Data`, and `Task`.
 
 ### CmdCtr
 
-`CmdCtr` creates a new command center. It takes a string argument which is the name of the base command. This is the command that will be used to run tasks.
+`CmdCtr` creates a new command center. It takes a string argument which is the name of the base
+command. This is the command that will be used to run tasks.
 
 ```ts
 import { CmdCtr } from "cmdctr";
@@ -34,7 +37,8 @@ const cmdCtr = CmdCtr("example");
 
 ### Data
 
-`Data` creates a new task data object. This object defines the name, description, and options for a task.
+`Data` creates a new task data object. This object defines the name, description, and options for a
+task.
 
 ```ts
 const task1Data = Data({
@@ -59,7 +63,8 @@ const task1Data = Data({
 
 ### Task
 
-`Task` creates a new task. It takes a data object and an action function as arguments. The action function is what will be executed when the task is run.
+`Task` creates a new task. It takes a data object and an action function as arguments. The action
+function is what will be executed when the task is run.
 
 ```ts
 const task1 = Task(task1Data, (opts) => {
@@ -71,7 +76,8 @@ const task1 = Task(task1Data, (opts) => {
 
 ### Registering and Running Tasks
 
-After creating tasks, you can register them to the command center using the `register` method. Then, you can run the tasks using the `run` method.
+After creating tasks, you can register them to the command center using the `register` method. Then,
+you can run the tasks using the `run` method.
 
 ```ts
 cmdCtr.register(task1);
@@ -149,9 +155,13 @@ cmdCtr.register(task2);
 cmdCtr.run();
 ```
 
-In this example, two tasks are created: `task-1` and `task-2`. `task-1` takes an input file and an output file as options, and `task-2` takes a message and a boolean flag as options. The tasks are then registered to the command center and run.
+In this example, two tasks are created: `task-1` and `task-2`. `task-1` takes an input file and an
+output file as options, and `task-2` takes a message and a boolean flag as options. The tasks are
+then registered to the command center and run.
 
-Command Center also provides a utility function `withSpinner` that can be used to display a spinner in the console while a task is running. This is useful for tasks that may take some time to complete.
+Command Center also provides a utility function `withSpinner` that can be used to display a spinner
+in the console while a task is running. This is useful for tasks that may take some time to
+complete.
 
 ## License
 
@@ -160,4 +170,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Contributing
 
 Contributions are welcome! Feel free to open an issue or submit a pull request.
-
