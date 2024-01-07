@@ -2,7 +2,7 @@
 
 Command Center (`cmdctr`) is a TypeScript project that provides a simple and flexible way to create command line interfaces (CLI). It allows you to define tasks with specific options and actions, and then run these tasks from the command line.
 
-> [! WARNING]
+> [!WARNING]
 > This project is still in early development and is not ready for production use.
 
 ## Installation
