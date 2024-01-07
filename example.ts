@@ -2,10 +2,10 @@
 
 import { Task, Data, CmdCtr, withSpinner } from ".";
 
-const cmdCtr = CmdCtr(); // or new CmdCtr()
+const cmdCtr = CmdCtr("./example.ts"); // or new CmdCtr()
 
-const example1Data = Data({
-    name: "example-1",
+const task1Data = Data({
+    name: "task-1",
     description: "A task that does something",
     options: {
         input: {
@@ -19,18 +19,18 @@ const example1Data = Data({
             type: "string",
             description: "The output file to be written",
             required: true,
-        },
+        }
     },
 });
 
-const example1 = Task(example1Data, (opts) => {
+const task1 = Task(task1Data, (opts) => {
     const { input, output } = opts;
     console.log(`input: ${input}`);
     console.log(`output: ${output}`);
 });
 
-const example2Data = Data({
-    name: "example-2",
+const task2Data = Data({
+    name: "task-2",
     description: "A task that does something else",
     options: {
         message: {
@@ -48,7 +48,7 @@ const example2Data = Data({
     },
 });
 
-const example2 = Task(example2Data, async (opts) => {
+const task2 = Task(task2Data, async (opts) => {
     const { message, loud } = opts;
     const text = await withSpinner("thinking...", () => {
         return new Promise<string>((resolve) => {
@@ -60,21 +60,6 @@ const example2 = Task(example2Data, async (opts) => {
     console.log(loud ? text.toUpperCase() : text);
 });
 
-cmdCtr.register(example1, example2).exec();
-
-/*
-// could also be written as:
-CmdCtr(example1, example2).exec();
-// or
-const cmdCtr = CmdCtr(example1, example2);
-cmdCtr.exec();
-// or
-const cmdCtr = CmdCtr();
-cmdCtr.register(example1);
-cmdCtr.register(example2);
-cmdCtr.exec();
-// or
-const cmdCtr = new CmdCtr(example1, example2);
-cmdCtr.exec();
-// or
-*/
+cmdCtr.register(task1);
+cmdCtr.register(task2);
+cmdCtr.run(process.argv.slice(2));

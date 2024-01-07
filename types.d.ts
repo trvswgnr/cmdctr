@@ -1,16 +1,13 @@
 export type CmdCtr = {
-    register: {
-        (tasks: Iterable<Task>): CmdCtr;
-        (...tasks: Task[]): CmdCtr;
-    };
-    exec: () => void | Promise<void>;
+    register: (task: Task) => CmdCtr;
+    run: (args?: string[]) => void | Promise<void>;
 };
 
 export type CmdCtrConstructor = {
-    (tasks: Iterable<Task>): CmdCtr;
-    new (tasks: Iterable<Task>): CmdCtr;
-    (...tasks: Task[]): CmdCtr;
-    new (...tasks: Task[]): CmdCtr;
+    (name: string): CmdCtr;
+    new (name: string): CmdCtr;
+    (name: string): CmdCtr;
+    new (name: string): CmdCtr;
 };
 
 /** data for a task including its options and information about it */

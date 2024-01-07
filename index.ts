@@ -7,20 +7,18 @@ import type {
     Strict,
     Action,
 } from "./types";
-import { getCliArgs, getValidatedOpts, showSpinner } from "./lib";
+import { convertToTasks, getCliArgs, getValidatedOpts, showSpinner } from "./lib";
 
-const createCmdCtr = function (...args: unknown[]) {
-    const tasksArr = convertToTasks(args);
-    const tasks = new Map<string, TaskInstance>(tasksArr.map((task) => [task.name, task]));
+export const CmdCtr = function (name: string) {
+    const tasks = new Map<string, TaskInstance>();
     const self = {
-        register: (...args: unknown[]) => {
-            const tasksArr = convertToTasks(args);
-            tasksArr.forEach((task) => tasks.set(task.name, task));
+        register: (task: TaskInstance) => {
+            tasks.set(task.name, task);
             return self;
         },
-        exec: () => {
+        run: (_args?: string[]) => {
             if (tasks.size === 0) throw "no tasks registered";
-            const args = getCliArgs(tasks);
+            const args = getCliArgs(tasks, name, _args);
             const taskName = args.taskName;
             const data = tasks.get(taskName);
             if (!data) throw `unknown task "${taskName}"`;
@@ -28,12 +26,6 @@ const createCmdCtr = function (...args: unknown[]) {
         },
     };
     return self;
-};
-function convertToTasks(args: unknown[]) {
-    return args.flat(Infinity) as TaskInstance[];
-}
-export const CmdCtr = function (...args: unknown[]) {
-    return createCmdCtr(...args);
 } as CmdCtrConstructor;
 
 export const Data = function <const D extends DataInstance>(data: Strict<D, DataInstance>) {

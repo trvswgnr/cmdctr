@@ -17,11 +17,10 @@ export function getValidatedOpts<const T>(data: any, args: T) {
     return args;
 }
 
-export function getCliArgs(tasks: RegisteredTasks): CliArgs {
-    const argv = process.argv;
-    const cmd = argv[1].split("/").pop();
-    const rawArgs = argv.slice(2);
-    let usage = `Usage: ${cmd} <task> <options>`;
+export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
+    const rawArgs = _args ?? process.argv;
+    let usage = `Usage: ${name} <task> <options>\nTasks:\n`;
+    usage += [...tasks.values()].map((task) => `  ${task.name}: ${task.description}`).join("\n");
     if (rawArgs.length < 1) {
         throw "missing task\n" + usage;
     }
@@ -43,7 +42,7 @@ export function getCliArgs(tasks: RegisteredTasks): CliArgs {
             return usageOption;
         })
         .join("\n");
-    usage = `Usage: ${cmd} ${String(taskName)} <options>\nOptions:\n`;
+    usage = `Usage: ${name} ${String(taskName)} <options>\nOptions:\n`;
     usage += usageOptions;
 
     const taskArgs = rawArgs.slice(1);
@@ -60,6 +59,7 @@ export function getCliArgs(tasks: RegisteredTasks): CliArgs {
         throw `invalid options for task "${String(taskName)}" - ${err.message}\n` + usage;
     }
     const args = parsed.values as Record<PropertyKey, unknown>;
+    const errors = [] as string[];
     for (const _key in options) {
         const key = _key as keyof typeof options;
         const option = options[key];
@@ -67,10 +67,26 @@ export function getCliArgs(tasks: RegisteredTasks): CliArgs {
             args[key] ??= option.default;
         }
         if (args[key] === undefined) {
-            throw `missing option "${String(key)}"\n` + usage;
+            errors.push(`"${String(key)}"`);
         }
     }
+    if (errors.length > 0) {
+        const s = errors.length > 1 ? "s" : "";
+        throw `missing required option${s} ${listify(errors)}\n` + usage;
+    }
+
     return Object.assign(args, { taskName });
+}
+
+function listify(items: string[]) {
+    if (items.length === 0) return "";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return items.join(" and ");
+    return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
+}
+
+export function convertToTasks(args: unknown[]) {
+    return args.flat(Infinity) as Task[];
 }
 
 export function showSpinner(text: string) {
