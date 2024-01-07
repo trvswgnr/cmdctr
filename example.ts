@@ -50,7 +50,7 @@ const task2Data = Data({
 
 const task2 = Task(task2Data, async (opts) => {
     const { message, loud } = opts;
-    const text = await withSpinner("thinking...", () => {
+    const text = await withSpinner("thinking", () => {
         return new Promise<string>((resolve) => {
             setTimeout(() => {
                 resolve(`oh yeah, ${message}`);

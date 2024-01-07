@@ -6,15 +6,16 @@ import type {
     TaskConstructor,
     Strict,
     Action,
+    CmdCtrFn,
+    RegisteredTasks,
 } from "./types";
-import { convertToTasks, getCliArgs, getValidatedOpts, showSpinner } from "./lib";
+import { type KeyofSpinnerSequences, getCliArgs, getValidatedOpts, spinner } from "./lib";
 
-export const CmdCtr = function (name: string) {
-    const tasks = new Map<string, TaskInstance>();
-    const self = {
+const _CmdCtr: CmdCtrFn = (name: string) => {
+    const tasks: RegisteredTasks = new Map();
+    return {
         register: (task: TaskInstance) => {
             tasks.set(task.name, task);
-            return self;
         },
         run: (_args?: string[]) => {
             if (tasks.size === 0) throw "no tasks registered";
@@ -25,25 +26,25 @@ export const CmdCtr = function (name: string) {
             data.action(getValidatedOpts(data, args));
         },
     };
-    return self;
-} as CmdCtrConstructor;
+};
+export const CmdCtr = _CmdCtr as CmdCtrConstructor;
 
-export const Data = function <const D extends DataInstance>(data: Strict<D, DataInstance>) {
-    return data;
-} as DataConstructor;
+const _Data = <const D extends DataInstance>(data: Strict<D, DataInstance>) => data;
+export const Data = _Data as DataConstructor;
 
-export const Task = function <const D extends DataInstance>(data: D, action: Action<D>) {
-    return {
-        ...data,
-        action: (validatedOpts: any) => action(validatedOpts),
-    };
-} as TaskConstructor;
+const _Task = <const D extends DataInstance>(data: D, action: Action<D>) => ({
+    ...data,
+    action: (validatedOpts: any) => action(validatedOpts),
+});
+export const Task = _Task as TaskConstructor;
 
-export async function withSpinner<T>(text: string, f: () => Promise<T>) {
-    const stopSpinner = showSpinner(text);
-    try {
-        return await f();
-    } finally {
-        stopSpinner();
-    }
+export async function withSpinner<T>(
+    text: string,
+    fn: () => Promise<T>,
+    sequence?: KeyofSpinnerSequences | string[],
+) {
+    const stopSpinner = spinner(text, sequence ?? "simpleDots");
+    const x = await fn();
+    stopSpinner();
+    return x;
 }

@@ -1,14 +1,10 @@
 export type CmdCtr = {
-    register: (task: Task) => CmdCtr;
+    register: (task: Task) => void;
     run: (args?: string[]) => void | Promise<void>;
 };
 
-export type CmdCtrConstructor = {
-    (name: string): CmdCtr;
-    new (name: string): CmdCtr;
-    (name: string): CmdCtr;
-    new (name: string): CmdCtr;
-};
+export type CmdCtrFn = (name: string) => CmdCtr;
+export type CmdCtrConstructor = CmdCtrFn & (new (name: string) => CmdCtr);
 
 /** data for a task including its options and information about it */
 export type Data = {
@@ -17,17 +13,19 @@ export type Data = {
     options: TaskOptions;
 };
 
-// prettier-ignore
-type Alpha = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
-           | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z";
-
-type StartsWithAlpha = Explicit<`${Alpha}${string}`>;
-
 /** the constructor of a data object, which can be called with `new` or without */
 export type DataConstructor = {
     <const D extends Data>(data: Strict<D, Data>): D;
     new <const D extends Data>(data: Strict<D, Data>): D;
 };
+
+// prettier-ignore
+/** a single lowercase letter */
+type Alpha = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
+           | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z";
+
+/** a string that starts with a letter */
+type StartsWithAlpha = Explicit<`${Alpha}${string}`>;
 
 /** a task that can be registered and run */
 export type Task = Data & { action: (validatedOpts: any) => void };
@@ -41,7 +39,7 @@ export type TaskConstructor = {
 /** the action function of a task */
 export type Action<T extends Data> = (args: MaskOpts<ValidatedOpts<T>>) => void | Promise<void>;
 
-export type RegisteredTasks = Map<string, Task>;
+export type RegisteredTasks = Map<string | symbol, Task>;
 
 /** the possible options for a task */
 export type TaskOptions = {
@@ -94,7 +92,7 @@ export type MaskOpts<T> = T extends infer U
     : never;
 
 // ! hack to make the type show as its name instead of its definition
-type Explicit<T> = ExplicitHelper1<ExplicitHelper2<T>>;
+export type Explicit<T> = ExplicitHelper1<ExplicitHelper2<T>>;
 type ExplicitHelper1<T> = T & { [EXPLICIT1]?: never };
 type ExplicitHelper2<T> = { [K in keyof T]: T[K] } & { [EXPLICIT2]?: never };
 declare const EXPLICIT1: unique symbol;

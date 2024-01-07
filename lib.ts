@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { type CliArgs, type RegisteredTasks, type Task as Task } from "./types";
+import { Explicit, type CliArgs, type RegisteredTasks, type Task as Task } from "./types";
 
 export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
     const rawArgs = _args ?? process.argv.slice(2);
@@ -78,52 +78,55 @@ export function getValidatedOpts<const T>(data: any, args: T) {
     return args;
 }
 
-
 export function convertToTasks(args: unknown[]) {
     return args.flat(Infinity) as Task[];
 }
 
-export function showSpinner(text: string) {
-    const spin = spinner(text).start();
-    return () => spin.stop();
-}
+export function showSpinner(text: string, sequence?: string[]) {}
 
-function spinner(text: string, sequence = ["|", "/", "-", "\\"]) {
-    const spinnerChars = sequence;
+export function spinner(text: string, sequence: KeyofSpinnerSequences | string[]) {
+    let spinnerChars =
+        typeof sequence === "string" ? (spinnerSequences as any)[sequence] : sequence;
     let i = 0;
     const spin = () => {
         const spinner = spinnerChars[i];
         i = (i + 1) % spinnerChars.length;
         return spinner;
     };
-    const stop = () => {
-        clearLine();
-    };
-    const start = () => {
-        process.stdout.write(text + " ");
+    const stop = () => clearLine();
+    const start = hideCursor(() => {
+        process.stdout.write(text);
         const interval = setInterval(() => {
-            process.stdout.write("\r" + text + " " + spin());
             hideCursor();
+            process.stdout.write("\r" + text + spin());
         }, 100);
-        return {
-            stop: () => {
-                clearInterval(interval);
-                stop();
-            },
+        return () => {
+            showCursor();
+            clearInterval(interval);
+            stop();
         };
-    };
-    return {
-        start,
-        stop,
-    };
+    });
+    return start;
 }
 
 function clearLine() {
     process.stdout.write("\r\x1b[K");
 }
 
-function hideCursor() {
-    process.stdout.write("\x1b[?25l");
+function hideCursor(): boolean;
+function hideCursor<const F extends () => any>(fn: F): F;
+function hideCursor<const F extends () => any>(fn?: F): F | boolean {
+    if (!fn) {
+        return process.stdout.write("\x1b[?25l");
+    }
+    hideCursor();
+    const x = fn();
+    showCursor();
+    return x;
+}
+
+function showCursor() {
+    process.stdout.write("\x1b[?25h");
 }
 
 function listify(items: string[]) {
@@ -132,3 +135,132 @@ function listify(items: string[]) {
     if (items.length === 2) return items.join(" and ");
     return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
 }
+
+export type SpinnerSequences = typeof spinnerSequences;
+export type KeyofSpinnerSequences = keyof SpinnerSequences;
+export const spinnerSequences = {
+    dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+    line: ["-", "\\", "|", "/"],
+    line2: ["⠂", "-", "–", "—", "–", "-"],
+    pipe: ["┤", "┘", "┴", "└", "├", "┌", "┬", "┐"],
+    simpleDots: [".  ", ".. ", "...", "   "],
+    simpleDotsScrolling: [".  ", ".. ", "...", " ..", "  .", "   "],
+    star: ["✶", "✸", "✹", "✺", "✹", "✷"],
+    star2: ["+", "x", "*"],
+    flip: ["_", "_", "_", "-", "`", "`", "'", "´", "-", "_", "_", "_"],
+    hamburger: ["☱", "☲", "☴"],
+    growVertical: ["▁", "▃", "▄", "▅", "▆", "▇", "▆", "▅", "▄", "▃"],
+    growHorizontal: ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "▊", "▋", "▌", "▍", "▎"],
+    balloon: [" ", ".", "o", "O", "@", "*", " ", " ", " ", " ", " "],
+    balloon2: [".", "o", "O", "°", "O", "o", "."],
+    noise: ["▓", "▒", "░"],
+    bounce: ["⠁", "⠂", "⠄", "⠂"],
+    boxBounce: ["▖", "▘", "▝", "▗"],
+    boxBounce2: ["▌", "▀", "▐", "▄"],
+    triangle: ["◢", "◣", "◤", "◥"],
+    arc: ["◜", "◠", "◝", "◞", "◡", "◟"],
+    circle: ["◡", "⊙", "◠"],
+    squareCorners: ["◰", "◳", "◲", "◱"],
+    circleQuarters: ["◴", "◷", "◶", "◵"],
+    circleHalves: ["◐", "◓", "◑", "◒"],
+    squish: ["╫", "╪"],
+    toggle: ["⊶", "⊷"],
+    toggle2: ["□", "■"],
+    arrow: ["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"],
+    arrow2: ["▹▹▹▹▹", "▸▹▹▹▹", "▹▸▹▹▹", "▹▹▸▹▹", "▹▹▹▸▹", "▹▹▹▹▸"],
+    bird: ["︷", "︵", "︹", "︺", "︶", "︸", "︶", "︺", "︹", "︵"],
+    bouncingBar: [
+        "[    ]",
+        "[=   ]",
+        "[==  ]",
+        "[=== ]",
+        "[ ===]",
+        "[  ==]",
+        "[   =]",
+        "[    ]",
+        "[   =]",
+        "[  ==]",
+        "[ ===]",
+        "[====]",
+        "[=== ]",
+        "[==  ]",
+        "[=   ]",
+    ],
+    bouncingBall: [
+        "( ●    )",
+        "(  ●   )",
+        "(   ●  )",
+        "(    ● )",
+        "(     ●)",
+        "(    ● )",
+        "(   ●  )",
+        "(  ●   )",
+        "( ●    )",
+        "(●     )",
+    ],
+    pong: [
+        "▐●            ▌",
+        "▐  ●          ▌",
+        "▐    ●        ▌",
+        "▐     ●       ▌",
+        "▐       ●     ▌",
+        "▐        ●    ▌",
+        "▐          ●  ▌",
+        "▐            ●▌",
+        "▐          ●  ▌",
+        "▐        ●    ▌",
+        "▐       ●     ▌",
+        "▐     ●       ▌",
+        "▐    ●        ▌",
+        "▐  ●          ▌",
+    ],
+    shark: [
+        "◣˷˷˷˷˷˷˷˷˷˷˷˷",
+        "˷◣˷˷˷˷˷˷˷˷˷˷˷",
+        "˷˷◣˷˷˷˷˷˷˷˷˷˷",
+        "˷˷˷◣˷˷˷˷˷˷˷˷˷",
+        "˷˷˷˷◣˷˷˷˷˷˷˷˷",
+        "˷˷˷˷˷◣˷˷˷˷˷˷˷",
+        "˷˷˷˷˷˷◣˷˷˷˷˷˷",
+        "˷˷˷˷˷˷˷◣˷˷˷˷˷",
+        "˷˷˷˷˷˷˷˷◣˷˷˷˷",
+        "˷˷˷˷˷˷˷˷˷◣˷˷˷",
+        "˷˷˷˷˷˷˷˷˷˷◣˷˷",
+        "˷˷˷˷˷˷˷˷˷˷˷◣˷",
+        "˷˷˷˷˷˷˷˷˷˷˷˷◣",
+        "˷˷˷˷˷˷˷˷˷˷˷˷◢",
+        "˷˷˷˷˷˷˷˷˷˷˷◢˷",
+        "˷˷˷˷˷˷˷˷˷˷◢˷˷",
+        "˷˷˷˷˷˷˷˷˷◢˷˷˷",
+        "˷˷˷˷˷˷˷˷◢˷˷˷˷",
+        "˷˷˷˷˷˷˷◢˷˷˷˷˷",
+        "˷˷˷˷˷˷◢˷˷˷˷˷˷",
+        "˷˷˷˷˷◢˷˷˷˷˷˷˷",
+        "˷˷˷˷◢˷˷˷˷˷˷˷˷",
+        "˷˷˷◢˷˷˷˷˷˷˷˷˷",
+        "˷˷◢˷˷˷˷˷˷˷˷˷˷",
+        "˷◢˷˷˷˷˷˷˷˷˷˷˷",
+        "◢˷˷˷˷˷˷˷˷˷˷˷˷",
+    ],
+    dqpb: ["d", "q", "p", "b"],
+    grenade: [
+        "،   ",
+        "′   ",
+        " ´ ",
+        " ‾ ",
+        "  ⸌",
+        "  ⸊",
+        "  |",
+        "  ⁎",
+        "  ⁕",
+        " ෴ ",
+        "  ⁓",
+        "   ",
+        "   ",
+        "   ",
+    ],
+    point: ["∙∙∙", "●∙∙", "∙●∙", "∙∙●", "∙∙∙"],
+    pointBounce: ["●∙∙∙∙", "∙●∙∙∙", "∙∙●∙∙", "∙∙∙●∙", "∙∙∙∙●", "∙∙∙●∙", "∙∙●∙∙", "∙●∙∙∙"],
+    layer: ["-", "=", "≡"],
+    betaWave: ["ρββββββ", "βρβββββ", "ββρββββ", "βββρβββ", "ββββρββ", "βββββρβ", "ββββββρ"],
+} as const;
