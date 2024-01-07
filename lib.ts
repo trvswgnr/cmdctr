@@ -1,24 +1,8 @@
 import { parseArgs } from "node:util";
 import { type CliArgs, type RegisteredTasks, type Task as Task } from "./types";
 
-export function getValidatedOpts<const T>(data: any, args: T) {
-    if (typeof args !== "object" || args === null) {
-        throw "args is not an object";
-    }
-    for (const key in data.options) {
-        if (!(key in args)) {
-            throw `missing option "${key}"`;
-        }
-        const option = data.options[key];
-        if (typeof (args as any)[key] !== option.type) {
-            throw `option "${key}" should be of type "${option.type}"`;
-        }
-    }
-    return args;
-}
-
 export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
-    const rawArgs = _args ?? process.argv;
+    const rawArgs = _args ?? process.argv.slice(2);
     let usage = `Usage: ${name} <task> <options>\nTasks:\n`;
     usage += [...tasks.values()].map((task) => `  ${task.name}: ${task.description}`).join("\n");
     if (rawArgs.length < 1) {
@@ -78,12 +62,22 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
     return Object.assign(args, { taskName });
 }
 
-function listify(items: string[]) {
-    if (items.length === 0) return "";
-    if (items.length === 1) return items[0];
-    if (items.length === 2) return items.join(" and ");
-    return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
+export function getValidatedOpts<const T>(data: any, args: T) {
+    if (typeof args !== "object" || args === null) {
+        throw "args is not an object";
+    }
+    for (const key in data.options) {
+        if (!(key in args)) {
+            throw `missing option "${key}"`;
+        }
+        const option = data.options[key];
+        if (typeof (args as any)[key] !== option.type) {
+            throw `option "${key}" should be of type "${option.type}"`;
+        }
+    }
+    return args;
 }
+
 
 export function convertToTasks(args: unknown[]) {
     return args.flat(Infinity) as Task[];
@@ -130,4 +124,11 @@ function clearLine() {
 
 function hideCursor() {
     process.stdout.write("\x1b[?25l");
+}
+
+function listify(items: string[]) {
+    if (items.length === 0) return "";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return items.join(" and ");
+    return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
 }

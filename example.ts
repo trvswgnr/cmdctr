@@ -2,7 +2,7 @@
 
 import { Task, Data, CmdCtr, withSpinner } from ".";
 
-const cmdCtr = CmdCtr("./example.ts"); // or new CmdCtr()
+const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
 
 const task1Data = Data({
     name: "task-1",
@@ -19,7 +19,7 @@ const task1Data = Data({
             type: "string",
             description: "The output file to be written",
             required: true,
-        }
+        },
     },
 });
 
@@ -62,4 +62,4 @@ const task2 = Task(task2Data, async (opts) => {
 
 cmdCtr.register(task1);
 cmdCtr.register(task2);
-cmdCtr.run(process.argv.slice(2));
+cmdCtr.run();
