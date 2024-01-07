@@ -2,7 +2,9 @@
     "name": "cmdctr",
     "version": "0.1.0",
     "type": "module",
-    "main": "index.ts",
+    "main": "index.js",
+    "module": "index.js",
+    "types": "types.d.ts",
     "scripts": {},
     "devDependencies": {
         "bun-types": "1.0.20"

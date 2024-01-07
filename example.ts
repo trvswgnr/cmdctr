@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { Task, Data, CmdCtr, withSpinner } from ".";
+import { Task, Data, CmdCtr, withSpinner } from "./index.ts";
 
 const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
 

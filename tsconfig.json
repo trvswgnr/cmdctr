@@ -9,7 +9,6 @@
         "noEmit": true,
         "composite": true,
         "strict": true,
-        "verbatimModuleSyntax": true,
         "downlevelIteration": true,
         "skipLibCheck": false,
         "jsx": "react-jsx",
