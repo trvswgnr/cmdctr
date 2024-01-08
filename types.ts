@@ -6,8 +6,8 @@ export type CmdCtrInstance = {
 };
 
 export type CmdCtrConstructor = CmdCtrFn & CmdCtrClass;
-export type CmdCtrFn = (baseCommand?: CommandInstance | string) => CmdCtrInstance;
-type CmdCtrClass = new (baseCommand?: CommandInstance | string) => CmdCtrInstance;
+export type CmdCtrFn = (baseCommand: CommandInstance | string) => CmdCtrInstance;
+type CmdCtrClass = new (baseCommand: CommandInstance | string) => CmdCtrInstance;
 
 /** data for a task including its options and information about it */
 export type DataInstance = {
@@ -31,12 +31,13 @@ type AlphaUpper = Uppercase<AlphaLower>;
 type Alpha = AlphaLower | AlphaUpper;
 
 /** a string that starts with a letter */
-type StartsWithAlpha = Explicit<`${Alpha}${string}`>;
+export type StartsWithAlpha = Explicit<`${Alpha}${string}`>;
 
 /** a task that can be registered and run */
 export type CommandInstance = DataInstance & {
     action: (validatedOpts: any) => void;
     register: (cmd: CommandInstance) => RegisteredCommands;
+    registeredCommands: RegisteredCommands;
 };
 
 /** the constructor of a task, which can be called with `new` or without */
@@ -55,8 +56,10 @@ export type Action<T extends DataInstance> = (
     args: MaskOpts<ValidatedOpts<T>>,
 ) => void | Promise<void>;
 
-type CommandInstanceWithDefault = CommandInstance & { isDefault?: boolean };
-export type RegisteredCommands = Map<string | DEFAULT_TASK, CommandInstanceWithDefault>;
+export type RegisteredCommands = Map<
+    string | DEFAULT_TASK,
+    CommandInstance & { isDefault?: boolean }
+>;
 
 /** the possible options for a task */
 export type CommandOptions = { [long: string]: CommandOption };

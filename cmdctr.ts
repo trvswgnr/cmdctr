@@ -17,12 +17,30 @@ import { DEFAULT_TASK, TASK_NAME } from "./constants";
 
 const _CmdCtr: CmdCtrFn = (baseCommand) => {
     const tasks: RegisteredCommands = new Map();
-    let data = typeof baseCommand === "string" ? tasks.get(baseCommand) : baseCommand;
-    if (!data) return errExit`unknown task "${baseCommand}"`;
-    tasks.set(DEFAULT_TASK, { ...data, isDefault: true });
-    const name = typeof baseCommand === "string" ? baseCommand : data.name;
+    const name = typeof baseCommand === "string" ? baseCommand : "";
+    if (typeof baseCommand !== "string") {
+        const data = baseCommand;
+        if (!data) return errExit`unknown task "${baseCommand}"`;
+        tasks.set(DEFAULT_TASK, { ...data, isDefault: true });
+        if (data.registeredCommands.size > 0) {
+            let name: string = "";
+            for (const [taskname, cmd] of data.registeredCommands.entries()) {
+                name += ` ${String(taskname)}`;
+                tasks.set(name.trim(), cmd);
+            }
+        }
+    }
     const self: CmdCtrInstance = {
-        register: (task: CommandInstance) => tasks.set(task.name, task),
+        register: (task: CommandInstance) => {
+            console.log("registering", task.name);
+            let name: string = task.registeredCommands.size > 0 ? "" : task.name;
+            for (const [taskname, cmd] of task.registeredCommands.entries()) {
+                console.log("registering", taskname);
+                name += ` ${String(taskname)}`;
+                tasks.set(name.trim(), cmd);
+            }
+            return tasks;
+        },
         run: (_args?: string[]) => {
             if (tasks.size === 0) return errExit`no tasks registered`;
             const args = getCliArgs(tasks, name, _args);
