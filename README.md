@@ -1,6 +1,6 @@
 # Command Center
 
-Command Center (`cmdctr`) is a library for TypeScript and JavaScript that provides a simple and flexible way to create
+Command Center (`cmdctr`) is a no-frills library for TypeScript and JavaScript that provides a simple, yet flexible way to create
 command line interfaces (CLI). It allows you to define tasks with specific options and actions, and
 then run these tasks from the command line. Type safety is built in, so you can be sure that your
 tasks are being run with the correct options.
@@ -8,6 +8,16 @@ tasks are being run with the correct options.
 > [!WARNING]
 >
 > This project is still in early development and is not ready for production use.
+
+#### What it is
+
+`cmdctr` is a focused, streamlined tool for creating CLI apps without unnecessary complexity. It's heavily focused on inferred types and safety, making it ideal for rapid development. `cmdctr` is great for creating tasks with specific options and actions, and executing those tasks from the command line.
+
+`cmdctr` has zero external dependencies, making it lightweight and easy to include in any project.
+
+#### What it isn't
+
+You won't find some of the cool features that often come bundled with CLI builder libraries. There are no color utilities, loading spinners, menus, events, or progress bars. Many established libraries for those needs already exist. Instead, `cmdctr` is built to work seamlessly alongside these specialized packages, allowing you to integrate only what you need.
 
 ## Installation
 
