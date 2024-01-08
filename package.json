@@ -42,7 +42,7 @@
   ],
   "sideEffects": false,
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.19.0"
   },
   "dependencies": {
     "util": "^0.12.5"
