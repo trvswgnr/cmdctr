@@ -1,7 +1,6 @@
 {
     "name": "cmdctr-examples",
     "private": true,
-    "type": "module",
     "author": "Travis Aaron Wagner <dev@techsavvytravvy.com> <https://techsavvytravvy.com>",
     "license": "MIT",
     "dependencies": {

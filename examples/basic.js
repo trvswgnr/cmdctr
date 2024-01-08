@@ -1,5 +1,5 @@
 // @ts-check
-import { Task, Data, CmdCtr } from "cmdctr";
+const { CmdCtr, Data, Task } = require("cmdctr");
 
 const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
 
