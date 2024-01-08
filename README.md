@@ -5,7 +5,9 @@ command line interfaces (CLI). It allows you to define tasks with specific optio
 then run these tasks from the command line. Type safety is built in, so you can be sure that your
 tasks are being run with the correct options.
 
-> [!WARNING] This project is still in early development and is not ready for production use.
+> [!WARNING]
+>
+> This project is still in early development and is not ready for production use.
 
 ## Installation
 
