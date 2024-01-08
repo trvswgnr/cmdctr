@@ -87,6 +87,17 @@ cmdCtr.register(task2);
 cmdCtr.run();
 ```
 
+### Setting the default task
+
+You can set a default task to be run when no task is specified. This is done using the `setDefault`
+method.
+
+```ts
+cmdCtr.setDefault(task1);
+// or
+cmdCtr.setDefault("task-1");
+```
+
 ## Example
 
 Here is a complete example of how to use Command Center:
