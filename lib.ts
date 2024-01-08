@@ -1,16 +1,16 @@
 import { parseArgs } from "node:util";
-import { type CliArgs, type RegisteredTasks, type Task as Task } from "./types";
+import type { CliArgs, RegisteredTasks, TaskOption } from "./types";
 
 export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
     const rawArgs = _args ?? process.argv.slice(2);
     let usage = `Usage: ${name} <task> <options>\nTasks:\n`;
     usage += [...tasks.values()].map((task) => `  ${task.name}: ${task.description}`).join("\n");
     if (rawArgs.length < 1) {
-        throw "missing task\n" + usage;
+        return errExit`missing task\n${usage}`;
     }
-    const taskName = rawArgs[0];
+    const taskName = rawArgs[0] ?? "";
     if (!tasks.has(taskName)) {
-        throw `unknown task "${String(taskName)}"\n` + usage;
+        return errExit`unknown task "${String(taskName)}"\n${usage}`;
     }
     const options = tasks.get(taskName)!.options;
     const usageOptions = Object.entries(options)
@@ -40,13 +40,13 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
     } catch (e) {
         const err = e instanceof Error ? e : new Error("unknown error");
         console.log(err.name);
-        throw `invalid options for task "${String(taskName)}" - ${err.message}\n` + usage;
+        return errExit`invalid options for task "${String(taskName)}" - ${err.message}\n${usage}`;
     }
     const args = parsed.values as Record<PropertyKey, unknown>;
-    const errors = [] as string[];
+    const errors: string[] = [];
     for (const _key in options) {
         const key = _key as keyof typeof options;
-        const option = options[key];
+        const option = options[key] ?? ({} as TaskOption);
         if (!("required" in option) || !option.required) {
             args[key] ??= option.default;
         }
@@ -56,7 +56,7 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
     }
     if (errors.length > 0) {
         const s = errors.length > 1 ? "s" : "";
-        throw `missing required option${s} ${listify(errors)}\n` + usage;
+        return errExit`missing required option${s} ${listify(errors)}\n${usage}`;
     }
 
     return Object.assign(args, { taskName });
@@ -65,15 +65,15 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
 /** validates the options passed to a task */
 export function getValidatedOpts<const T>(data: any, args: T) {
     if (typeof args !== "object" || args === null) {
-        throw "args is not an object";
+        return errExit`args is not an object`;
     }
     for (const key in data.options) {
         if (!(key in args)) {
-            throw `missing option "${key}"`;
+            return errExit`missing option "${key}"`;
         }
         const option = data.options[key];
         if (typeof (args as any)[key] !== option.type) {
-            throw `option "${key}" should be of type "${option.type}"`;
+            return errExit`option "${key}" should be of type "${option.type}"`;
         }
     }
     return args;
@@ -86,189 +86,12 @@ function listify(items: string[]) {
     return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
 }
 
-/** terminal utilities */
-export const term = {
-    clearLine: () => process.stdout.write("\r\x1b[K"),
-    hideCursor: () => process.stdout.write("\x1b[?25l"),
-    showCursor: () => process.stdout.write("\x1b[?25h"),
-};
-
-/**
- * show a text spinner while `fn` is running
- *
- * @example
- * ```ts
- * const obj = spinner("thinking ", "simpleDots");
- * const text = await fn();
- * obj.stop();
- * ```
- *
- * @param text the text to be printed before the spinner
- * @param sequence the name of the spinner sequence, or an array of strings to be used as the spinner
- * @returns an object with a `stop` method
- */
-export function spinner(text: string, sequence?: SpinnersKey | string[]) {
-    let spinnerChars = typeof sequence === "string" ? (spinners as any)[sequence] : sequence;
-    if (!spinnerChars) {
-        spinnerChars = spinners.simpleDots;
+export function errExit(_strings?: string | TemplateStringsArray, ...values: unknown[]) {
+    const strings =
+        _strings === undefined ? [] : typeof _strings === "string" ? [_strings] : _strings;
+    const message = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), "");
+    if (message) {
+        console.log(`ERROR: ${message}`);
     }
-    let i = 0;
-    const spin = () => {
-        const spinner = spinnerChars![i];
-        i = (i + 1) % spinnerChars!.length;
-        return spinner;
-    };
-    const stop = (text?: string) => {
-        term.clearLine();
-        term.showCursor();
-        if (text) {
-            process.stdout.write(text);
-        }
-    };
-    term.hideCursor();
-    process.stdout.write(text);
-    const interval = setInterval(() => process.stdout.write("\r" + text + spin()), 100);
-    return {
-        /** stop the spinner and clear the line */
-        stop: (text?: string) => {
-            clearInterval(interval);
-            stop(text);
-        },
-    };
+    return process.exit(1);
 }
-process.on("SIGINT", () => {
-    term.showCursor();
-    process.stdout.write("\n");
-    process.exit(130);
-});
-
-export type Spinners = typeof spinners;
-export type SpinnersKey = keyof Spinners;
-
-/**  @see https://wiki.tcl-lang.org/page/Text+Spinner */
-export const spinners = {
-    dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
-    line: ["-", "\\", "|", "/"],
-    line2: ["⠂", "-", "–", "—", "–", "-"],
-    pipe: ["┤", "┘", "┴", "└", "├", "┌", "┬", "┐"],
-    simpleDots: [".  ", ".. ", "...", "   "],
-    simpleDotsScrolling: [".  ", ".. ", "...", " ..", "  .", "   "],
-    star: ["✶", "✸", "✹", "✺", "✹", "✷"],
-    star2: ["+", "x", "*"],
-    flip: ["_", "_", "_", "-", "`", "`", "'", "´", "-", "_", "_", "_"],
-    hamburger: ["☱", "☲", "☴"],
-    growVertical: ["▁", "▃", "▄", "▅", "▆", "▇", "▆", "▅", "▄", "▃"],
-    growHorizontal: ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "▊", "▋", "▌", "▍", "▎"],
-    balloon: [" ", ".", "o", "O", "@", "*", " ", " ", " ", " ", " "],
-    balloon2: [".", "o", "O", "°", "O", "o", "."],
-    noise: ["▓", "▒", "░"],
-    bounce: ["⠁", "⠂", "⠄", "⠂"],
-    boxBounce: ["▖", "▘", "▝", "▗"],
-    boxBounce2: ["▌", "▀", "▐", "▄"],
-    triangle: ["◢", "◣", "◤", "◥"],
-    arc: ["◜", "◠", "◝", "◞", "◡", "◟"],
-    circle: ["◡", "⊙", "◠"],
-    squareCorners: ["◰", "◳", "◲", "◱"],
-    circleQuarters: ["◴", "◷", "◶", "◵"],
-    circleHalves: ["◐", "◓", "◑", "◒"],
-    squish: ["╫", "╪"],
-    toggle: ["⊶", "⊷"],
-    toggle2: ["□", "■"],
-    arrow: ["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"],
-    arrow2: ["▹▹▹▹▹", "▸▹▹▹▹", "▹▸▹▹▹", "▹▹▸▹▹", "▹▹▹▸▹", "▹▹▹▹▸"],
-    bird: ["︷", "︵", "︹", "︺", "︶", "︸", "︶", "︺", "︹", "︵"],
-    bouncingBar: [
-        "[    ]",
-        "[=   ]",
-        "[==  ]",
-        "[=== ]",
-        "[ ===]",
-        "[  ==]",
-        "[   =]",
-        "[    ]",
-        "[   =]",
-        "[  ==]",
-        "[ ===]",
-        "[====]",
-        "[=== ]",
-        "[==  ]",
-        "[=   ]",
-    ],
-    bouncingBall: [
-        "( ●    )",
-        "(  ●   )",
-        "(   ●  )",
-        "(    ● )",
-        "(     ●)",
-        "(    ● )",
-        "(   ●  )",
-        "(  ●   )",
-        "( ●    )",
-        "(●     )",
-    ],
-    pong: [
-        "▐●            ▌",
-        "▐  ●          ▌",
-        "▐    ●        ▌",
-        "▐     ●       ▌",
-        "▐       ●     ▌",
-        "▐        ●    ▌",
-        "▐          ●  ▌",
-        "▐            ●▌",
-        "▐          ●  ▌",
-        "▐        ●    ▌",
-        "▐       ●     ▌",
-        "▐     ●       ▌",
-        "▐    ●        ▌",
-        "▐  ●          ▌",
-    ],
-    shark: [
-        "◣˷˷˷˷˷˷˷˷˷˷˷˷",
-        "˷◣˷˷˷˷˷˷˷˷˷˷˷",
-        "˷˷◣˷˷˷˷˷˷˷˷˷˷",
-        "˷˷˷◣˷˷˷˷˷˷˷˷˷",
-        "˷˷˷˷◣˷˷˷˷˷˷˷˷",
-        "˷˷˷˷˷◣˷˷˷˷˷˷˷",
-        "˷˷˷˷˷˷◣˷˷˷˷˷˷",
-        "˷˷˷˷˷˷˷◣˷˷˷˷˷",
-        "˷˷˷˷˷˷˷˷◣˷˷˷˷",
-        "˷˷˷˷˷˷˷˷˷◣˷˷˷",
-        "˷˷˷˷˷˷˷˷˷˷◣˷˷",
-        "˷˷˷˷˷˷˷˷˷˷˷◣˷",
-        "˷˷˷˷˷˷˷˷˷˷˷˷◣",
-        "˷˷˷˷˷˷˷˷˷˷˷˷◢",
-        "˷˷˷˷˷˷˷˷˷˷˷◢˷",
-        "˷˷˷˷˷˷˷˷˷˷◢˷˷",
-        "˷˷˷˷˷˷˷˷˷◢˷˷˷",
-        "˷˷˷˷˷˷˷˷◢˷˷˷˷",
-        "˷˷˷˷˷˷˷◢˷˷˷˷˷",
-        "˷˷˷˷˷˷◢˷˷˷˷˷˷",
-        "˷˷˷˷˷◢˷˷˷˷˷˷˷",
-        "˷˷˷˷◢˷˷˷˷˷˷˷˷",
-        "˷˷˷◢˷˷˷˷˷˷˷˷˷",
-        "˷˷◢˷˷˷˷˷˷˷˷˷˷",
-        "˷◢˷˷˷˷˷˷˷˷˷˷˷",
-        "◢˷˷˷˷˷˷˷˷˷˷˷˷",
-    ],
-    dqpb: ["d", "q", "p", "b"],
-    grenade: [
-        "،   ",
-        "′   ",
-        " ´ ",
-        " ‾ ",
-        "  ⸌",
-        "  ⸊",
-        "  |",
-        "  ⁎",
-        "  ⁕",
-        " ෴ ",
-        "  ⁓",
-        "   ",
-        "   ",
-        "   ",
-    ],
-    point: ["∙∙∙", "●∙∙", "∙●∙", "∙∙●", "∙∙∙"],
-    pointBounce: ["●∙∙∙∙", "∙●∙∙∙", "∙∙●∙∙", "∙∙∙●∙", "∙∙∙∙●", "∙∙∙●∙", "∙∙●∙∙", "∙●∙∙∙"],
-    layer: ["-", "=", "≡"],
-    betaWave: ["ρββββββ", "βρβββββ", "ββρββββ", "βββρβββ", "ββββρββ", "βββββρβ", "ββββββρ"],
-};
