@@ -1,5 +1,6 @@
 // @ts-check
-const { CmdCtr, Data, Task } = require("cmdctr");
+import { CmdCtr, Data, Task } from "cmdctr";
+import ora from "ora"; // loading spinner (for funzies)
 
 const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
 
@@ -49,10 +50,13 @@ const task2Data = Data({
 
 const task2 = Task(task2Data, async (opts) => {
     const { message, loud } = opts;
+    const loadingMsg = "...what was i saying again?";
+    const spinner = ora(loadingMsg).start();
     const text = await new Promise((resolve) => {
-        setTimeout(() => resolve(message), 1000);
+        setTimeout(() => resolve(`oh yeah, ${loud ? message.toUpperCase() : message}`), 2000);
     });
-    console.log(loud ? text.toUpperCase() : text);
+    spinner.stop();
+    console.log(text);
 });
 
 cmdCtr.register(task1);
