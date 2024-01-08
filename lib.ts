@@ -65,9 +65,10 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
     try {
         parsed = parseArgs(taskConfig);
     } catch (e) {
-        const err = e instanceof Error ? e : new Error("unknown error");
-        console.log(err.name);
-        return errExit`invalid options for task "${String(taskName)}" - ${err.message}\n${usage}`;
+        if (usingDefaultTask) {
+            return errExit`invalid options\n${usage}`;
+        }
+        return errExit`invalid options for task "${String(taskName)}"\n${usage}`;
     }
     const args = parsed.values as Record<PropertyKey, unknown>;
     const errors: string[] = [];
@@ -114,11 +115,42 @@ function listify(items: string[]) {
 }
 
 export function errExit(_strings?: string | TemplateStringsArray, ...values: unknown[]) {
+    const red = (str: string) => `\x1b[31m${str}\x1b[0m`;
     const strings =
         _strings === undefined ? [] : typeof _strings === "string" ? [_strings] : _strings;
     const message = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), "");
     if (message) {
-        console.log(`ERROR: ${message}`);
+        const errMessage = getErrorMessage();
+        console.log(`${red(`${errMessage}:`)} ${message}`);
     }
     return process.exit(1);
+}
+
+function getErrorMessage() {
+    const messages = [
+        "¯\\_(ツ)_/¯",
+        "oh no",
+        "oops!",
+        "uh oh",
+        "lol whoops",
+        "ahhh!",
+        "[screaming]",
+        "this isn't good",
+        "it's so bad",
+        "i can't believe you've done this",
+        "ughhh",
+        "x_x",
+        "f",
+        "rip",
+        "worst case ontario",
+        "this is fine",
+        "(╯°□°）╯︵ ┻━┻",
+        "┻━┻︵ \\(°□°)/ ︵ ┻━┻",
+        "i'm sorry, dave, i'm afraid i can't do that",
+        "¯\\_(ツ)_/¯",
+        "hmm",
+        "uhhh",
+    ];
+    const index = Math.floor(Math.random() * messages.length);
+    return Math.random() >= 0.7 ? messages[index] : "error";
 }
