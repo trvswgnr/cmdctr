@@ -1,5 +1,5 @@
-import type { CliArgs, RegisteredTasks, TaskOption, TaskOptions } from "./types";
 import { parseArgs } from "node:util";
+import type { CliArgs, RegisteredTasks, TaskOption, TaskOptions } from "./types";
 export const DEFAULT_TASK_NAME = Symbol.for("cmdctr.default_task_name");
 
 
@@ -88,7 +88,22 @@ function getArgumentUsageExplanation(options: TaskOptions, nameAndTaskName: stri
     return taskUsage;
 }
 
-
+/** validates the options passed to a task */
+export function getValidatedOpts<const T>(data: any, args: T) {
+    if (typeof args !== "object" || args === null) {
+        return errExit`args is not an object`;
+    }
+    for (const key in data.options) {
+        if (!(key in args)) {
+            return errExit`missing option "${key}"`;
+        }
+        const option = data.options[key];
+        if (typeof (args as any)[key] !== option.type) {
+            return errExit`option "${key}" should be of type "${option.type}"`;
+        }
+    }
+    return args;
+}
 
 function listify(items: string[]) {
     if (items.length === 0) return "";
