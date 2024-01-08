@@ -103,9 +103,11 @@ cmdCtr.setDefault("task-1");
 Here is a complete example of how to use Command Center:
 
 ```ts
-import { Task, Data, CmdCtr, withSpinner } from "cmdctr";
+// @ts-check
+import { CmdCtr, Data, Task } from "cmdctr";
+import ora from "ora"; // loading spinner (for funzies)
 
-const cmdCtr = CmdCtr("example");
+const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
 
 const task1Data = Data({
     name: "task-1",
@@ -153,18 +155,18 @@ const task2Data = Data({
 
 const task2 = Task(task2Data, async (opts) => {
     const { message, loud } = opts;
-    const text = await withSpinner("thinking...", () => {
-        return new Promise<string>((resolve) => {
-            setTimeout(() => {
-                resolve(`oh yeah, ${message}`);
-            }, 2000);
-        });
+    const loadingMsg = "...what was i saying again?";
+    const spinner = ora(loadingMsg).start();
+    const text = await new Promise((resolve) => {
+        setTimeout(() => resolve(`oh yeah, ${loud ? message.toUpperCase() : message}`), 2000);
     });
-    console.log(loud ? text.toUpperCase() : text);
+    spinner.stop();
+    console.log(text);
 });
 
 cmdCtr.register(task1);
 cmdCtr.register(task2);
+cmdCtr.setDefault(task2);
 cmdCtr.run();
 ```
 

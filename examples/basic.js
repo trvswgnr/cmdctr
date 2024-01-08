@@ -60,5 +60,5 @@ const task2 = Task(task2Data, async (opts) => {
 });
 
 cmdCtr.register(task1);
-cmdCtr.register(task2);
+cmdCtr.setDefault(task2);
 cmdCtr.run();
