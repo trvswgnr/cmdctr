@@ -1,16 +1,38 @@
 {
     "name": "cmdctr",
     "version": "0.1.2",
-    "type": "module",
-    "main": "index.js",
-    "module": "index.js",
-    "types": "types.d.ts",
-    "scripts": {},
+    "description": "Quickly create command line tasks with TypeScript",
+    "author": {
+        "name": "Travis Aaron Wagner",
+        "email": "dev@techsavvytravvy.com",
+        "url": "https://techsavvytravvy.com"
+    },
+    "keywords": [
+        "cli",
+        "task",
+        "command",
+        "command-line",
+        "command-line-interface",
+        "library",
+        "commander",
+        "command",
+        "options",
+        "argument",
+        "parser",
+        "args",
+        "argv"
+    ],
+    "license": "MIT",
+    "main": "dist/index.js",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsup index.ts --format cjs,esm --dts --clean --sourcemap --minify",
+        "lint": "tsc"
+    },
     "devDependencies": {
-        "bun-types": "1.0.20"
-    },
-    "peerDependencies": {
-        "typescript": "5.3.3"
-    },
-    "dependencies": {}
+        "bun-types": "^1.0.21",
+        "tsup": "^8.0.1",
+        "typescript": "^5.3.3"
+    }
 }
