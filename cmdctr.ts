@@ -25,7 +25,7 @@ const _CmdCtr: CmdCtrFn = (name: string) => {
         run: (_args?: string[]) => {
             if (tasks.size === 0) return errExit`no tasks registered`;
             const args = getCliArgs(tasks, name, _args);
-            const taskName = args.taskName;
+            const taskName = args.usingDefaultTask ? DEFAULT_TASK_NAME : args.taskName;
             const data = tasks.get(taskName);
             if (!data) return errExit`unknown task "${taskName}"`;
             data.action(getValidatedOpts(data, args));

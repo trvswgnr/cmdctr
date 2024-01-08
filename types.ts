@@ -80,7 +80,9 @@ type OptionsFromData<T extends DataInstance> = {
 } & { [K in TaskNameKey]: string };
 
 /** the arguments passed to the CLI */
-export type CliArgs = Record<PropertyKey, unknown> & { [K in TaskNameKey]: string };
+export type CliArgs = Record<PropertyKey, unknown> & { [K in TaskNameKey]: string } & {
+    usingDefaultTask: boolean;
+};
 
 /** widens the type `T` to be compatible with the type `U` if it has the same keys */
 type Widen<T, U> = { [K in keyof T]: K extends keyof U ? U[K] : T[K] };

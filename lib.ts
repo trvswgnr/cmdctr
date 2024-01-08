@@ -87,7 +87,7 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
         return errExit`missing required option${s} ${listify(errors)}\n${usage}`;
     }
 
-    return Object.assign(args, { taskName });
+    return Object.assign(args, { taskName, usingDefaultTask });
 }
 
 /** validates the options passed to a task */
