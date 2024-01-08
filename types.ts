@@ -88,7 +88,8 @@ export type CliArgs = Record<PropertyKey, unknown> & { [K in TaskNameKey]: strin
 type Widen<T, U> = { [K in keyof T]: K extends keyof U ? U[K] : T[K] };
 
 /** ensures that the type `T` contains all and **_only_** the properties of type `U` */
-export type Strict<T, U> = U extends Widen<T, U> ? T : `ERROR: only known properties are allowed`;
+export type Strict<T, U> = StrictHelper<T, U> & StrictHelper<U, T>;
+type StrictHelper<T, U> = U extends Widen<T, U> ? T : `ERROR: only known properties are allowed`;
 
 /** removes the `TaskNameKey` property from the type `T` */
 type MaskOpts<T> = T extends infer U
