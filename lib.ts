@@ -27,7 +27,17 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
         taskName = tasks.get(DEFAULT_TASK_NAME)!.name;
         usingDefaultTask = true;
     }
-    const task = tasks.get(taskName)!;
+    let task = tasks.get(taskName);
+    if (!task) {
+        if (!tasks.has(DEFAULT_TASK_NAME)) {
+            return errExit`missing task\n${usage}`;
+        }
+        task = tasks.get(DEFAULT_TASK_NAME);
+        usingDefaultTask = true;
+    }
+    if (!task) {
+        return errExit`missing task\n${usage}`;
+    }
     const options = task.options;
     const usageOptions = Object.entries(options)
         .map(([long, option]) => {
