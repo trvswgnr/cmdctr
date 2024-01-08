@@ -12,6 +12,7 @@
     "main": "dist/index.js",
     "module": "dist/index.mjs",
     "types": "dist/index.d.ts",
+    "repository": "https://github.com/trvswgnr/cmdctr",
     "scripts": {
         "build": "tsup index.ts --format cjs,esm --dts --clean --sourcemap",
         "lint": "tsc",
