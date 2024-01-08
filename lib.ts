@@ -1,8 +1,12 @@
 import { parseArgs } from "node:util";
-import type { CliArgs, RegisteredTasks, TaskOption } from "./types";
-
+import type { CliArgs, RegisteredTasks, TaskOption, TaskOptions } from "./types";
 export const DEFAULT_TASK_NAME = Symbol.for("cmdctr.default_task_name");
 
+
+type TaskConfig = {
+    options: TaskOptions;
+    args: string[];
+}
 export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
     const rawArgs = _args ?? process.argv.slice(2);
     let usageBase = `\nUsage: ${name} <task> <options>\nTasks:\n`;
@@ -10,35 +14,63 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
         .map((task) => `  ${task.name}: ${task.description}`)
         .join("\n");
     let usage = usageBase + tasksList;
-    let taskNameRaw = rawArgs[0];
-    let usingDefaultTask = false;
-    if (!taskNameRaw) {
-        if (!tasks.has(DEFAULT_TASK_NAME)) {
-            return errExit`missing task\n${usage}`;
-        }
-        taskNameRaw = tasks.get(DEFAULT_TASK_NAME)!.name;
-        usingDefaultTask = true;
-    }
-    let taskName = taskNameRaw ?? "";
-    if (!tasks.has(taskName)) {
-        if (!tasks.has(DEFAULT_TASK_NAME)) {
-            return errExit`missing task\n${usage}`;
-        }
-        taskName = tasks.get(DEFAULT_TASK_NAME)!.name;
-        usingDefaultTask = true;
-    }
-    let task = tasks.get(taskName);
-    if (!task) {
-        if (!tasks.has(DEFAULT_TASK_NAME)) {
-            return errExit`missing task\n${usage}`;
-        }
-        task = tasks.get(DEFAULT_TASK_NAME);
-        usingDefaultTask = true;
-    }
+
+    const taskName = (rawArgs[0] || DEFAULT_TASK_NAME) ?? '';
+
+    const task = tasks.get(taskName);
     if (!task) {
         return errExit`missing task\n${usage}`;
     }
+    const usingDefaultTask = tasks.get(DEFAULT_TASK_NAME) === task;
+    const taskNameString = String(taskName)
+    const nameAndTaskName = usingDefaultTask ? name : `${name} ${taskNameString}`
+
     const options = task.options;
+    const taskArgs = usingDefaultTask ? rawArgs : rawArgs.slice(1);
+    const taskConfig = {
+        options,
+        args: taskArgs,
+    };
+    const args = parseArgsChecked(taskConfig, usingDefaultTask, nameAndTaskName, taskNameString)
+
+
+    const errors: string[] = checkMissingOptions(options, args);
+    if (errors.length > 0) {
+        const s = errors.length > 1 ? "s" : "";
+        return errExit`missing required option${s} ${listify(errors)}\n${getArgumentUsageExplanation(options, nameAndTaskName)}`;
+    }
+
+    return Object.assign(args, { taskName: taskNameString, usingDefaultTask });
+}
+
+
+function parseArgsChecked(taskConfig: TaskConfig, usingDefaultTask: boolean, nameAndTaskName: string, taskNameString: string) {
+    try {
+        return parseArgs(taskConfig).values;
+    } catch (e) {
+        if (usingDefaultTask) {
+            return errExit`invalid options\n${getArgumentUsageExplanation(taskConfig.options, nameAndTaskName)}`;
+        }
+        return errExit`invalid options for task "${taskNameString}"\n${getArgumentUsageExplanation(taskConfig.options, nameAndTaskName)}`;
+    }
+
+}
+
+function checkMissingOptions(options: TaskOptions, args: Record<PropertyKey, unknown>) {
+    const errors: string[] = [];
+    for (const key in options) {
+        const option: TaskOption | undefined = options[key];
+        if (option && option?.required !== true) {
+            args[key] ??= option.default;
+        }
+        if (args[key] === undefined) {
+            errors.push(`"${String(key)}"`);
+        }
+    }
+    return errors
+}
+
+function getArgumentUsageExplanation(options: TaskOptions, nameAndTaskName: string) {
     const usageOptions = Object.entries(options)
         .map(([long, option]) => {
             let usageOption = `  --${long}`;
@@ -46,48 +78,13 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
                 usageOption += `, -${option.short}`;
             }
             usageOption += `: ${option.description}`;
-            if (!("required" in option) || !option.required) {
+            if (option.required !== true) {
                 usageOption += ` (default: ${option.default})`;
             }
             return usageOption;
         })
         .join("\n");
-    const nameAndTaskName = usingDefaultTask ? name : `${name} ${taskName}`;
-    usage = `\nUsage: ${nameAndTaskName} <options>\nOptions:\n`;
-    usage += usageOptions;
-
-    const taskArgs = usingDefaultTask ? rawArgs : rawArgs.slice(1);
-    const taskConfig = {
-        options,
-        args: taskArgs,
-    };
-    let parsed: ReturnType<typeof parseArgs<typeof taskConfig>>;
-    try {
-        parsed = parseArgs(taskConfig);
-    } catch (e) {
-        if (usingDefaultTask) {
-            return errExit`invalid options\n${usage}`;
-        }
-        return errExit`invalid options for task "${String(taskName)}"\n${usage}`;
-    }
-    const args = parsed.values as Record<PropertyKey, unknown>;
-    const errors: string[] = [];
-    for (const _key in options) {
-        const key = _key as keyof typeof options;
-        const option = options[key] ?? ({} as TaskOption);
-        if (!("required" in option) || !option.required) {
-            args[key] ??= option.default;
-        }
-        if (args[key] === undefined) {
-            errors.push(`"${String(key)}"`);
-        }
-    }
-    if (errors.length > 0) {
-        const s = errors.length > 1 ? "s" : "";
-        return errExit`missing required option${s} ${listify(errors)}\n${usage}`;
-    }
-
-    return Object.assign(args, { taskName, usingDefaultTask });
+    return `\nUsage: ${nameAndTaskName} <options>\nOptions:\n${usageOptions}`;
 }
 
 /** validates the options passed to a task */
