@@ -7,22 +7,8 @@
         "email": "dev@techsavvytravvy.com",
         "url": "https://techsavvytravvy.com"
     },
-    "keywords": [
-        "cli",
-        "task",
-        "command",
-        "command-line",
-        "command-line-interface",
-        "library",
-        "commander",
-        "command",
-        "options",
-        "argument",
-        "parser",
-        "args",
-        "argv"
-    ],
     "license": "MIT",
+    "type": "module",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
     "types": "dist/index.d.ts",
@@ -44,7 +30,19 @@
     "engines": {
         "node": ">=18.19.0"
     },
-    "dependencies": {
-        "util": "^0.12.5"
-    }
+    "keywords": [
+        "cli",
+        "task",
+        "command",
+        "command-line",
+        "command-line-interface",
+        "library",
+        "commander",
+        "command",
+        "options",
+        "argument",
+        "parser",
+        "args",
+        "argv"
+    ]
 }
