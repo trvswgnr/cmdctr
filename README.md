@@ -174,9 +174,10 @@ In this example, two tasks are created: `task-1` and `task-2`. `task-1` takes an
 output file as options, and `task-2` takes a message and a boolean flag as options. The tasks are
 then registered to the command center and run.
 
-Command Center also provides a utility function `withSpinner` that can be used to display a spinner
-in the console while a task is running. This is useful for tasks that may take some time to
-complete.
+In this case, `task2` is registered AND set as the default task, so it will be run when no task is
+specified but can also be run explicitly by specifying `task-2` as the task to run. If it had not
+been registered, it would run when no task is specified but would not be able to be run explicitly
+as a subcommand.
 
 ## License
 
