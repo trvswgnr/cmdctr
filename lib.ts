@@ -84,8 +84,7 @@ function getArgumentUsageExplanation(options: TaskOptions, nameAndTaskName: stri
             return usageOption;
         })
         .join("\n");
-    const taskUsage = `\nUsage: ${nameAndTaskName} <options>\nOptions:\n${usageOptions}`;
-    return taskUsage;
+    return `\nUsage: ${nameAndTaskName} <options>\nOptions:\n${usageOptions}`;
 }
 
 /** validates the options passed to a task */
