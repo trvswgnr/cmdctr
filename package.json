@@ -15,7 +15,8 @@
     "scripts": {
         "build": "tsup index.ts --format cjs,esm --dts --clean --sourcemap",
         "lint": "tsc",
-        "release": "np"
+        "release": "np",
+        "test": "echo \"no tests yet\""
     },
     "devDependencies": {
         "@types/node": "^20.10.7",
