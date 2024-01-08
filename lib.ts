@@ -1,22 +1,22 @@
 import { parseArgs } from "node:util";
-import type { CliArgs, RegisteredTasks, TaskOption } from "./types";
+import type { CliArgs, RegisteredCommands, CommandOption } from "./types";
 import { DEFAULT_TASK, ParseError, TASK_NAME } from "./constants";
 
-export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
+export function getCliArgs(tasks: RegisteredCommands, name: string, _args?: string[]): CliArgs {
     const rawArgs = _args ?? process.argv.slice(2);
-    let usageBase = `\nUsage: ${name} <task> <options>\nTasks:\n`;
+    let usageBase = `\nUsage: ${name} <task> <options>\nCommands:\n`;
     const tasksList = [...tasks.values()]
         .map((task) => `  ${task.name}: ${task.description}`)
         .join("\n");
     let usage = usageBase + tasksList;
-    let taskNameRaw = rawArgs[0];
-    let usingDefaultTask = false;
+    let taskNameRaw = tryToGetTaskName(rawArgs, tasks);
+    let usingDefaultCommand = false;
     if (!taskNameRaw) {
         if (!tasks.has(DEFAULT_TASK)) {
             return errExit`missing task\n${usage}`;
         }
         taskNameRaw = tasks.get(DEFAULT_TASK)!.name;
-        usingDefaultTask = true;
+        usingDefaultCommand = true;
     }
     let taskName = taskNameRaw ?? "";
     if (!tasks.has(taskName)) {
@@ -24,7 +24,7 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
             return errExit`missing task\n${usage}`;
         }
         taskName = tasks.get(DEFAULT_TASK)!.name;
-        usingDefaultTask = true;
+        usingDefaultCommand = true;
     }
     let task = tasks.get(taskName);
     if (!task) {
@@ -32,7 +32,7 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
             return errExit`missing task\n${usage}`;
         }
         task = tasks.get(DEFAULT_TASK);
-        usingDefaultTask = true;
+        usingDefaultCommand = true;
     }
     if (!task) {
         return errExit`missing task\n${usage}`;
@@ -51,11 +51,11 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
             return usageOption;
         })
         .join("\n");
-    const nameAndTaskName = usingDefaultTask ? name : `${name} ${taskName}`;
-    usage = `\nUsage: ${nameAndTaskName} <options>\nOptions:\n`;
+    const nameAndCommandName = usingDefaultCommand ? name : `${name} ${taskName}`;
+    usage = `\nUsage: ${nameAndCommandName} <options>\nOptions:\n`;
     usage += usageOptions;
 
-    const taskArgs = usingDefaultTask ? rawArgs : rawArgs.slice(1);
+    const taskArgs = usingDefaultCommand ? rawArgs : rawArgs.slice(1);
     const taskConfig = {
         options,
         args: taskArgs,
@@ -64,14 +64,14 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
     try {
         parsed = parseArgs(taskConfig);
     } catch (e) {
-        const err = ParseError.from(e, usingDefaultTask ? name : taskName);
+        const err = ParseError.from(e, usingDefaultCommand ? name : taskName);
         return errExit`${err.message}\n${usage}`;
     }
     const args = parsed.values as Record<PropertyKey, unknown>;
     const errors: string[] = [];
     for (const _key in options) {
         const key = _key as keyof typeof options;
-        const option = options[key] ?? ({} as TaskOption);
+        const option = options[key] ?? ({} as CommandOption);
         if (!("required" in option) || !option.required) {
             args[key] ??= option.default;
         }
@@ -84,7 +84,23 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
         return errExit`missing required option${s} ${listify(errors)}\n${usage}`;
     }
 
-    return Object.assign(args, { [TASK_NAME]: taskName, usingDefaultTask });
+    return Object.assign(args, { [TASK_NAME]: taskName, usingDefaultCommand });
+}
+
+// task name could be the first argument, or it could be a series of commands and subcommands
+function tryToGetTaskName(args: string[], tasks: RegisteredCommands) {
+    if (args.length === 0) return null;
+    const firstArg = args[0] ?? "";
+    if (tasks.has(firstArg)) return firstArg;
+    const taskNames = [...tasks.keys()];
+    let taskName = "";
+    for (const arg of args) {
+        taskName += arg;
+        if (taskNames.includes(taskName)) return taskName;
+        taskName += " ";
+    }
+
+    return null;
 }
 
 /** validates the options passed to a task */

@@ -1,19 +1,19 @@
-import { TASK_NAME } from "./constants";
+import { DEFAULT_TASK, TASK_NAME } from "./constants";
 
 export type CmdCtrInstance = {
-    register: (task: TaskInstance) => RegisteredTasks;
+    register: (task: CommandInstance) => RegisteredCommands;
     run: (args?: string[]) => void | Promise<void>;
 };
 
 export type CmdCtrConstructor = CmdCtrFn & CmdCtrClass;
-export type CmdCtrFn = (baseCommand?: TaskInstance | string) => CmdCtrInstance;
-type CmdCtrClass = new (baseCommand?: TaskInstance | string) => CmdCtrInstance;
+export type CmdCtrFn = (baseCommand?: CommandInstance | string) => CmdCtrInstance;
+type CmdCtrClass = new (baseCommand?: CommandInstance | string) => CmdCtrInstance;
 
 /** data for a task including its options and information about it */
 export type DataInstance = {
     name: StartsWithAlpha;
     description: string;
-    options: TaskOptions;
+    options: CommandOptions;
 };
 
 /** the constructor of a data object, which can be called with `new` or without */
@@ -34,22 +34,32 @@ type Alpha = AlphaLower | AlphaUpper;
 type StartsWithAlpha = Explicit<`${Alpha}${string}`>;
 
 /** a task that can be registered and run */
-export type TaskInstance = DataInstance & { action: (validatedOpts: any) => void };
+export type CommandInstance = DataInstance & {
+    action: (validatedOpts: any) => void;
+    register: (cmd: CommandInstance) => RegisteredCommands;
+};
 
 /** the constructor of a task, which can be called with `new` or without */
-export type TaskConstructor = TaskFn & TaskClass;
-export type TaskFn = <const D extends DataInstance>(data: D, action: Action<D>) => TaskInstance;
-type TaskClass = new <const D extends DataInstance>(data: D, action: Action<D>) => TaskInstance;
+export type CommandConstructor = CommandFn & CommandClass;
+export type CommandFn = <const D extends DataInstance>(
+    data: D,
+    action: Action<D>,
+) => CommandInstance;
+type CommandClass = new <const D extends DataInstance>(
+    data: D,
+    action: Action<D>,
+) => CommandInstance;
 
 /** the action function of a task */
 export type Action<T extends DataInstance> = (
     args: MaskOpts<ValidatedOpts<T>>,
 ) => void | Promise<void>;
 
-export type RegisteredTasks = Map<string | symbol, TaskInstance & { isDefault?: boolean }>;
+type CommandInstanceWithDefault = CommandInstance & { isDefault?: boolean };
+export type RegisteredCommands = Map<string | DEFAULT_TASK, CommandInstanceWithDefault>;
 
 /** the possible options for a task */
-export type TaskOptions = { [long: string]: TaskOption };
+export type CommandOptions = { [long: string]: CommandOption };
 
 type TypeLiteral = "string" | "boolean";
 type TypeLiteralToNative<T extends TypeLiteral> = {
@@ -64,14 +74,14 @@ type OptionItemDescriptor<T extends TypeLiteral> = {
     short?: Alpha;
     description: string;
 };
-type TaskOptionItem<T extends TypeLiteral, R extends boolean> = OptionItemDescriptor<T> &
+type CommandOptionItem<T extends TypeLiteral, R extends boolean> = OptionItemDescriptor<T> &
     OptionItemRequirement<T, R>;
 
-export type TaskOption =
-    | TaskOptionItem<"string", false>
-    | TaskOptionItem<"boolean", false>
-    | TaskOptionItem<"string", true>
-    | TaskOptionItem<"boolean", true>;
+export type CommandOption =
+    | CommandOptionItem<"string", false>
+    | CommandOptionItem<"boolean", false>
+    | CommandOptionItem<"string", true>
+    | CommandOptionItem<"boolean", true>;
 
 /** the validated options passed to the task action */
 type ValidatedOpts<T extends DataInstance> = OptionsFromData<T>;
@@ -83,7 +93,7 @@ type OptionsFromData<T extends DataInstance> = {
 
 /** the arguments passed to the CLI */
 export type CliArgs = Record<PropertyKey, unknown> & { [K in TASK_NAME]: string } & {
-    usingDefaultTask: boolean;
+    usingDefaultCommand: boolean;
 };
 
 /** widens the type `T` to be compatible with the type `U` if it has the same keys */
@@ -93,7 +103,7 @@ type Widen<T, U> = { [K in keyof T]: K extends keyof U ? U[K] : T[K] };
 export type Strict<T, U> = StrictHelper<T, U> & StrictHelper<U, T>;
 type StrictHelper<T, U> = U extends Widen<T, U> ? T : `ERROR: only known properties are allowed`;
 
-/** removes the `TaskNameKey` property from the type `T` */
+/** removes the `CommandNameKey` property from the type `T` */
 type MaskOpts<T> = T extends infer U
     ? { [K in keyof U as K extends TASK_NAME ? never : K]: U[K] }
     : never;

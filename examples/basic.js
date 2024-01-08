@@ -1,5 +1,5 @@
 // @ts-check
-import { CmdCtr, Data, Task } from "cmdctr";
+import { CmdCtr, Data, Command } from "cmdctr";
 import ora from "ora"; // loading spinner (for funzies)
 
 const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
@@ -23,7 +23,7 @@ const task1Data = Data({
     },
 });
 
-const task1 = Task(task1Data, (opts) => {
+const task1 = Command(task1Data, (opts) => {
     const { input, output } = opts;
     console.log(`input: ${input}`);
     console.log(`output: ${output}`);
@@ -48,7 +48,7 @@ const task2Data = Data({
     },
 });
 
-const task2 = Task(task2Data, async (opts) => {
+const task2 = Command(task2Data, async (opts) => {
     const { message, loud } = opts;
     const loadingMsg = "...what was i saying again?";
     const spinner = ora(loadingMsg).start();

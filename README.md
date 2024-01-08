@@ -35,7 +35,7 @@ git clone https://github.com/trvswgnr/cmdctr.git
 
 ## Usage
 
-Command Center provides three main functions: `CmdCtr`, `Data`, and `Task`.
+Command Center provides three main functions: `CmdCtr`, `Data`, and `Command`.
 
 ### CmdCtr
 
@@ -73,13 +73,13 @@ const task1Data = Data({
 });
 ```
 
-### Task
+### Command
 
-`Task` creates a new task. It takes a data object and an action function as arguments. The action
+`Command` creates a new task. It takes a data object and an action function as arguments. The action
 function is what will be executed when the task is run.
 
 ```ts
-const task1 = Task(task1Data, (opts) => {
+const task1 = Command(task1Data, (opts) => {
     const { input, output } = opts;
     console.log(`input: ${input}`);
     console.log(`output: ${output}`);
@@ -88,7 +88,7 @@ const task1 = Task(task1Data, (opts) => {
 
 A nice feature here is the options passed to the action function (`opts` here) are validated from the CLI and their types are known at compile-time. This means you get meaningfull type hints and code completion in your editor and can be sure that the arguments are the types you're expecting.
 
-### Registering and Running Tasks
+### Registering and Running Commands
 
 After creating tasks, you can register them to the command center using the `register` method. Then,
 you can run the tasks using the `run` method.
@@ -116,7 +116,7 @@ Here is a complete example of how to use Command Center:
 
 ```ts
 // @ts-check
-import { CmdCtr, Data, Task } from "cmdctr";
+import { CmdCtr, Data, Command } from "cmdctr";
 import ora from "ora"; // loading spinner (for funzies)
 
 const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
@@ -140,7 +140,7 @@ const task1Data = Data({
     },
 });
 
-const task1 = Task(task1Data, (opts) => {
+const task1 = Command(task1Data, (opts) => {
     const { input, output } = opts;
     console.log(`input: ${input}`);
     console.log(`output: ${output}`);
@@ -165,7 +165,7 @@ const task2Data = Data({
     },
 });
 
-const task2 = Task(task2Data, async (opts) => {
+const task2 = Command(task2Data, async (opts) => {
     const { message, loud } = opts;
     const loadingMsg = "...what was i saying again?";
     const spinner = ora(loadingMsg).start();

@@ -2,10 +2,10 @@ export type {
     CmdCtrConstructor,
     DataInstance,
     DataConstructor,
-    TaskInstance,
-    TaskConstructor,
+    CommandInstance,
+    CommandConstructor,
     Action,
-    RegisteredTasks,
-    TaskOption,
+    RegisteredCommands,
+    CommandOption,
 } from "./types";
 export * from "./cmdctr";
