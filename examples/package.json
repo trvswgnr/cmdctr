@@ -1,16 +1,11 @@
 {
     "name": "cmdctr-examples",
     "private": true,
-    "version": "1.0.0",
-    "description": "",
     "type": "module",
-    "main": "basic.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "",
-    "license": "ISC",
+    "author": "Travis Aaron Wagner <dev@techsavvytravvy.com> <https://techsavvytravvy.com>",
+    "license": "MIT",
     "dependencies": {
-        "cmdctr": "latest"
+        "cmdctr": "^0.1.3",
+        "ora": "^8.0.1"
     }
 }

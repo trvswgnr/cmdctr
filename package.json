@@ -27,17 +27,24 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup index.ts --format cjs,esm --dts --clean --sourcemap --minify",
+    "build": "tsup index.ts --format cjs,esm --dts --clean --sourcemap",
     "lint": "tsc",
     "release": "np"
   },
   "devDependencies": {
-    "bun-types": "^1.0.21",
+    "@types/node": "^20.10.7",
     "np": "^9.2.0",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "files": [
     "dist"
-  ]
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "util": "^0.12.5"
+  }
 }

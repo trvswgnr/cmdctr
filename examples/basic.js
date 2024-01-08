@@ -49,7 +49,9 @@ const task2Data = Data({
 
 const task2 = Task(task2Data, async (opts) => {
     const { message, loud } = opts;
-    const text = "oh yeah, " + message;
+    const text = await new Promise((resolve) => {
+        setTimeout(() => resolve(message), 1000);
+    });
     console.log(loud ? text.toUpperCase() : text);
 });
 
