@@ -1,5 +1,6 @@
 type CmdCtrInstance = {
     register: (task: TaskInstance) => RegisteredTasks;
+    setDefault: (task: TaskInstance | string) => RegisteredTasks;
     run: (args?: string[]) => void | Promise<void>;
 };
 
@@ -40,7 +41,7 @@ export type Action<T extends DataInstance> = (
     args: MaskOpts<ValidatedOpts<T>>,
 ) => void | Promise<void>;
 
-export type RegisteredTasks = Map<string | symbol, TaskInstance>;
+export type RegisteredTasks = Map<string | symbol, TaskInstance & { isDefault?: boolean }>;
 
 /** the possible options for a task */
 export type TaskOptions = { [long: string]: TaskOption };

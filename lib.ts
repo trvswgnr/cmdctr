@@ -1,18 +1,34 @@
 import { parseArgs } from "node:util";
 import type { CliArgs, RegisteredTasks, TaskOption } from "./types";
 
+export const DEFAULT_TASK_NAME = Symbol.for("cmdctr.default_task_name");
+
 export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
     const rawArgs = _args ?? process.argv.slice(2);
-    let usage = `Usage: ${name} <task> <options>\nTasks:\n`;
-    usage += [...tasks.values()].map((task) => `  ${task.name}: ${task.description}`).join("\n");
-    if (rawArgs.length < 1) {
-        return errExit`missing task\n${usage}`;
+    let usageBase = `\nUsage: ${name} <task> <options>\nTasks:\n`;
+    const tasksList = [...tasks.values()]
+        .map((task) => `  ${task.name}: ${task.description}`)
+        .join("\n");
+    let usage = usageBase + tasksList;
+    let taskNameRaw = rawArgs[0];
+    let usingDefaultTask = false;
+    if (!taskNameRaw) {
+        if (!tasks.has(DEFAULT_TASK_NAME)) {
+            return errExit`missing task\n${usage}`;
+        }
+        taskNameRaw = tasks.get(DEFAULT_TASK_NAME)!.name;
+        usingDefaultTask = true;
     }
-    const taskName = rawArgs[0] ?? "";
+    let taskName = taskNameRaw ?? "";
     if (!tasks.has(taskName)) {
-        return errExit`unknown task "${String(taskName)}"\n${usage}`;
+        if (!tasks.has(DEFAULT_TASK_NAME)) {
+            return errExit`missing task\n${usage}`;
+        }
+        taskName = tasks.get(DEFAULT_TASK_NAME)!.name;
+        usingDefaultTask = true;
     }
-    const options = tasks.get(taskName)!.options;
+    const task = tasks.get(taskName)!;
+    const options = task.options;
     const usageOptions = Object.entries(options)
         .map(([long, option]) => {
             let usageOption = `  --${long}`;
@@ -26,10 +42,11 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
             return usageOption;
         })
         .join("\n");
-    usage = `Usage: ${name} ${String(taskName)} <options>\nOptions:\n`;
+    const nameAndTaskName = usingDefaultTask ? name : `${name} ${taskName}`;
+    usage = `\nUsage: ${nameAndTaskName} <options>\nOptions:\n`;
     usage += usageOptions;
 
-    const taskArgs = rawArgs.slice(1);
+    const taskArgs = usingDefaultTask ? rawArgs : rawArgs.slice(1);
     const taskConfig = {
         options,
         args: taskArgs,
