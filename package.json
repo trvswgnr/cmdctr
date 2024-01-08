@@ -15,7 +15,7 @@
     "scripts": {
         "build": "tsup index.ts --format cjs,esm --dts --clean --sourcemap",
         "lint": "tsc",
-        "release": "np",
+        "release": "npm run build && np",
         "test": "echo \"no tests yet\""
     },
     "devDependencies": {
