@@ -8,8 +8,10 @@ import type {
     Action,
     CmdCtrFn,
     RegisteredTasks,
+    DataFn,
+    TaskFn,
 } from "./types";
-import { type KeyofSpinnerSequences, getCliArgs, getValidatedOpts, spinner } from "./lib";
+import { type SpinnersKey, getCliArgs, getValidatedOpts, spinner } from "./lib";
 
 const _CmdCtr: CmdCtrFn = (name: string) => {
     const tasks: RegisteredTasks = new Map();
@@ -29,10 +31,10 @@ const _CmdCtr: CmdCtrFn = (name: string) => {
 };
 export const CmdCtr = _CmdCtr as CmdCtrConstructor;
 
-const _Data = <const D extends DataInstance>(data: Strict<D, DataInstance>) => data;
+const _Data: DataFn = <const D extends DataInstance>(data: Strict<D, DataInstance>) => data as D;
 export const Data = _Data as DataConstructor;
 
-const _Task = <const D extends DataInstance>(data: D, action: Action<D>) => ({
+const _Task: TaskFn = <const D extends DataInstance>(data: D, action: Action<D>) => ({
     ...data,
     action: (validatedOpts: any) => action(validatedOpts),
 });
@@ -41,10 +43,8 @@ export const Task = _Task as TaskConstructor;
 export async function withSpinner<T>(
     text: string,
     fn: () => Promise<T>,
-    sequence?: KeyofSpinnerSequences | string[],
+    sequence?: SpinnersKey | string[],
 ) {
-    const stopSpinner = spinner(text, sequence ?? "simpleDots");
-    const x = await fn();
-    stopSpinner();
-    return x;
+    const spin = spinner(text, sequence || "simpleDots");
+    return fn().finally(spin.stop);
 }

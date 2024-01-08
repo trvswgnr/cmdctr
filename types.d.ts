@@ -3,8 +3,9 @@ export type CmdCtr = {
     run: (args?: string[]) => void | Promise<void>;
 };
 
+export type CmdCtrConstructor = CmdCtrFn & CmdCtrClass;
 export type CmdCtrFn = (name: string) => CmdCtr;
-export type CmdCtrConstructor = CmdCtrFn & (new (name: string) => CmdCtr);
+type CmdCtrClass = new (name: string) => CmdCtr;
 
 /** data for a task including its options and information about it */
 export type Data = {
@@ -14,10 +15,9 @@ export type Data = {
 };
 
 /** the constructor of a data object, which can be called with `new` or without */
-export type DataConstructor = {
-    <const D extends Data>(data: Strict<D, Data>): D;
-    new <const D extends Data>(data: Strict<D, Data>): D;
-};
+export type DataConstructor = DataFn & DataClass;
+export type DataFn = <const D extends Data>(data: Strict<D, Data>) => D;
+type DataClass = new <const D extends Data>(data: Strict<D, Data>) => D;
 
 // prettier-ignore
 /** a single lowercase letter */
@@ -31,10 +31,9 @@ type StartsWithAlpha = Explicit<`${Alpha}${string}`>;
 export type Task = Data & { action: (validatedOpts: any) => void };
 
 /** the constructor of a task, which can be called with `new` or without */
-export type TaskConstructor = {
-    <const D extends Data>(data: D, action: Action<D>): Task;
-    new <const D extends Data>(data: D, action: Action<D>): Task;
-};
+export type TaskConstructor = TaskFn & TaskClass;
+export type TaskFn = <const D extends Data>(data: D, action: Action<D>) => Task;
+type TaskClass = new <const D extends Data>(data: D, action: Action<D>) => Task;
 
 /** the action function of a task */
 export type Action<T extends Data> = (args: MaskOpts<ValidatedOpts<T>>) => void | Promise<void>;

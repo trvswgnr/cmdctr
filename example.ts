@@ -50,13 +50,13 @@ const task2Data = Data({
 
 const task2 = Task(task2Data, async (opts) => {
     const { message, loud } = opts;
-    const text = await withSpinner("thinking", () => {
+    const text = await withSpinner("what was i saying? ", () => {
         return new Promise<string>((resolve) => {
             setTimeout(() => {
                 resolve(`oh yeah, ${message}`);
-            }, 2000);
+            }, 5000);
         });
-    });
+    }, "pong");
     console.log(loud ? text.toUpperCase() : text);
 });
 

@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { Explicit, type CliArgs, type RegisteredTasks, type Task as Task } from "./types";
+import { type CliArgs, type RegisteredTasks, type Task as Task } from "./types";
 
 export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
     const rawArgs = _args ?? process.argv.slice(2);
@@ -62,6 +62,7 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
     return Object.assign(args, { taskName });
 }
 
+/** validates the options passed to a task */
 export function getValidatedOpts<const T>(data: any, args: T) {
     if (typeof args !== "object" || args === null) {
         throw "args is not an object";
@@ -78,57 +79,6 @@ export function getValidatedOpts<const T>(data: any, args: T) {
     return args;
 }
 
-export function convertToTasks(args: unknown[]) {
-    return args.flat(Infinity) as Task[];
-}
-
-export function showSpinner(text: string, sequence?: string[]) {}
-
-export function spinner(text: string, sequence: KeyofSpinnerSequences | string[]) {
-    let spinnerChars =
-        typeof sequence === "string" ? (spinnerSequences as any)[sequence] : sequence;
-    let i = 0;
-    const spin = () => {
-        const spinner = spinnerChars[i];
-        i = (i + 1) % spinnerChars.length;
-        return spinner;
-    };
-    const stop = () => clearLine();
-    const start = hideCursor(() => {
-        process.stdout.write(text);
-        const interval = setInterval(() => {
-            hideCursor();
-            process.stdout.write("\r" + text + spin());
-        }, 100);
-        return () => {
-            showCursor();
-            clearInterval(interval);
-            stop();
-        };
-    });
-    return start;
-}
-
-function clearLine() {
-    process.stdout.write("\r\x1b[K");
-}
-
-function hideCursor(): boolean;
-function hideCursor<const F extends () => any>(fn: F): F;
-function hideCursor<const F extends () => any>(fn?: F): F | boolean {
-    if (!fn) {
-        return process.stdout.write("\x1b[?25l");
-    }
-    hideCursor();
-    const x = fn();
-    showCursor();
-    return x;
-}
-
-function showCursor() {
-    process.stdout.write("\x1b[?25h");
-}
-
 function listify(items: string[]) {
     if (items.length === 0) return "";
     if (items.length === 1) return items[0];
@@ -136,9 +86,67 @@ function listify(items: string[]) {
     return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
 }
 
-export type SpinnerSequences = typeof spinnerSequences;
-export type KeyofSpinnerSequences = keyof SpinnerSequences;
-export const spinnerSequences = {
+/** terminal utilities */
+export const term = {
+    clearLine: () => process.stdout.write("\r\x1b[K"),
+    hideCursor: () => process.stdout.write("\x1b[?25l"),
+    showCursor: () => process.stdout.write("\x1b[?25h"),
+};
+
+/**
+ * show a text spinner while `fn` is running
+ *
+ * @example
+ * ```ts
+ * const obj = spinner("thinking ", "simpleDots");
+ * const text = await fn();
+ * obj.stop();
+ * ```
+ *
+ * @param text the text to be printed before the spinner
+ * @param sequence the name of the spinner sequence, or an array of strings to be used as the spinner
+ * @returns an object with a `stop` method
+ */
+export function spinner(text: string, sequence?: SpinnersKey | string[]) {
+    let spinnerChars = typeof sequence === "string" ? (spinners as any)[sequence] : sequence;
+    if (!spinnerChars) {
+        spinnerChars = spinners.simpleDots;
+    }
+    let i = 0;
+    const spin = () => {
+        const spinner = spinnerChars![i];
+        i = (i + 1) % spinnerChars!.length;
+        return spinner;
+    };
+    const stop = (text?: string) => {
+        term.clearLine();
+        term.showCursor();
+        if (text) {
+            process.stdout.write(text);
+        }
+    };
+    term.hideCursor();
+    process.stdout.write(text);
+    const interval = setInterval(() => process.stdout.write("\r" + text + spin()), 100);
+    return {
+        /** stop the spinner and clear the line */
+        stop: (text?: string) => {
+            clearInterval(interval);
+            stop(text);
+        },
+    };
+}
+process.on("SIGINT", () => {
+    term.showCursor();
+    process.stdout.write("\n");
+    process.exit(130);
+});
+
+export type Spinners = typeof spinners;
+export type SpinnersKey = keyof Spinners;
+
+/**  @see https://wiki.tcl-lang.org/page/Text+Spinner */
+export const spinners = {
     dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
     line: ["-", "\\", "|", "/"],
     line2: ["⠂", "-", "–", "—", "–", "-"],
@@ -263,4 +271,4 @@ export const spinnerSequences = {
     pointBounce: ["●∙∙∙∙", "∙●∙∙∙", "∙∙●∙∙", "∙∙∙●∙", "∙∙∙∙●", "∙∙∙●∙", "∙∙●∙∙", "∙●∙∙∙"],
     layer: ["-", "=", "≡"],
     betaWave: ["ρββββββ", "βρβββββ", "ββρββββ", "βββρβββ", "ββββρββ", "βββββρβ", "ββββββρ"],
-} as const;
+};
