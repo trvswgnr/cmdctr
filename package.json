@@ -1,6 +1,6 @@
 {
     "name": "cmdctr",
-    "version": "0.1.9",
+    "version": "0.1.10",
     "description": "Quickly create command line tasks with TypeScript",
     "author": {
         "name": "Travis Aaron Wagner",
