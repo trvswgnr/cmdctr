@@ -1,7 +1,6 @@
 import { parseArgs } from "node:util";
 import type { CliArgs, RegisteredTasks, TaskOption } from "./types";
-
-export const DEFAULT_TASK_NAME = Symbol.for("cmdctr.default_task_name");
+import { DEFAULT_TASK, ParseError, TASK_NAME } from "./constants";
 
 export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[]): CliArgs {
     const rawArgs = _args ?? process.argv.slice(2);
@@ -13,26 +12,26 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
     let taskNameRaw = rawArgs[0];
     let usingDefaultTask = false;
     if (!taskNameRaw) {
-        if (!tasks.has(DEFAULT_TASK_NAME)) {
+        if (!tasks.has(DEFAULT_TASK)) {
             return errExit`missing task\n${usage}`;
         }
-        taskNameRaw = tasks.get(DEFAULT_TASK_NAME)!.name;
+        taskNameRaw = tasks.get(DEFAULT_TASK)!.name;
         usingDefaultTask = true;
     }
     let taskName = taskNameRaw ?? "";
     if (!tasks.has(taskName)) {
-        if (!tasks.has(DEFAULT_TASK_NAME)) {
+        if (!tasks.has(DEFAULT_TASK)) {
             return errExit`missing task\n${usage}`;
         }
-        taskName = tasks.get(DEFAULT_TASK_NAME)!.name;
+        taskName = tasks.get(DEFAULT_TASK)!.name;
         usingDefaultTask = true;
     }
     let task = tasks.get(taskName);
     if (!task) {
-        if (!tasks.has(DEFAULT_TASK_NAME)) {
+        if (!tasks.has(DEFAULT_TASK)) {
             return errExit`missing task\n${usage}`;
         }
-        task = tasks.get(DEFAULT_TASK_NAME);
+        task = tasks.get(DEFAULT_TASK);
         usingDefaultTask = true;
     }
     if (!task) {
@@ -65,10 +64,8 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
     try {
         parsed = parseArgs(taskConfig);
     } catch (e) {
-        if (usingDefaultTask) {
-            return errExit`invalid options\n${usage}`;
-        }
-        return errExit`invalid options for task "${String(taskName)}"\n${usage}`;
+        const err = ParseError.from(e, usingDefaultTask ? name : taskName);
+        return errExit`${err.message}\n${usage}`;
     }
     const args = parsed.values as Record<PropertyKey, unknown>;
     const errors: string[] = [];
@@ -87,7 +84,7 @@ export function getCliArgs(tasks: RegisteredTasks, name: string, _args?: string[
         return errExit`missing required option${s} ${listify(errors)}\n${usage}`;
     }
 
-    return Object.assign(args, { taskName, usingDefaultTask });
+    return Object.assign(args, { [TASK_NAME]: taskName, usingDefaultTask });
 }
 
 /** validates the options passed to a task */
