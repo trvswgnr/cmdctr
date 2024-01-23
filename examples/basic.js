@@ -4,9 +4,9 @@ import ora from "ora"; // loading spinner (for funzies)
 
 const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
 
-const task1Data = Data({
-    name: "task-1",
-    description: "A task that does something",
+const command1Data = Data({
+    name: "command-1",
+    description: "A command that does something",
     options: {
         input: {
             short: "i",
@@ -23,15 +23,15 @@ const task1Data = Data({
     },
 });
 
-const task1 = Command(task1Data, (opts) => {
+const command1 = Command(command1Data, (opts) => {
     const { input, output } = opts;
     console.log(`input: ${input}`);
     console.log(`output: ${output}`);
 });
 
-const task2Data = Data({
-    name: "task-2",
-    description: "A task that does something else",
+const command2Data = Data({
+    name: "command-2",
+    description: "A command that does something else",
     options: {
         message: {
             short: "m",
@@ -48,7 +48,7 @@ const task2Data = Data({
     },
 });
 
-const task2 = Command(task2Data, async (opts) => {
+const command2 = Command(command2Data, async (opts) => {
     const { message, loud } = opts;
     const loadingMsg = "...what was i saying again?";
     const spinner = ora(loadingMsg).start();
@@ -59,6 +59,6 @@ const task2 = Command(task2Data, async (opts) => {
     console.log(text);
 });
 
-cmdCtr.register(task1);
-cmdCtr.setDefault(task2);
+cmdCtr.register(command1);
+cmdCtr.setDefault(command2);
 cmdCtr.run();

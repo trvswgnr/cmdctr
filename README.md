@@ -1,9 +1,9 @@
 # Command Center
 
 Command Center (`cmdctr`) is a no-frills library for TypeScript and JavaScript that provides a simple, yet flexible way to create
-command line interfaces (CLI). It allows you to define tasks with specific options and actions, and
-then run these tasks from the command line. Type safety is built in, so you can be sure that your
-tasks are being run with the correct options.
+command line interfaces (CLI). It allows you to define commands with specific options and actions, and
+then run these commands from the command line. Type safety is built in, so you can be sure that your
+commands are being run with the correct options.
 
 > [!WARNING]
 >
@@ -11,7 +11,7 @@ tasks are being run with the correct options.
 
 #### What it is
 
-`cmdctr` is a focused, streamlined tool for creating CLI apps without unnecessary complexity. It's heavily focused on inferred types and safety, making it ideal for rapid development. `cmdctr` is great for creating tasks with specific options and actions, and executing those tasks from the command line.
+`cmdctr` is a focused, streamlined tool for creating CLI apps without unnecessary complexity. It's heavily focused on inferred types and safety, making it ideal for rapid development. `cmdctr` is great for creating commands with specific options and actions, and executing those commands from the command line.
 
 `cmdctr` has zero external dependencies, making it lightweight and easy to include in any project.
 
@@ -40,7 +40,7 @@ Command Center provides three main functions: `CmdCtr`, `Data`, and `Command`.
 ### CmdCtr
 
 `CmdCtr` creates a new command center. It takes a string argument which is the name of the base
-command. This is the command that will be used to run tasks.
+command. This is the command that will be used to run commands.
 
 ```ts
 import { CmdCtr } from "cmdctr";
@@ -49,13 +49,13 @@ const cmdCtr = CmdCtr("example");
 
 ### Data
 
-`Data` creates a new task data object. This object defines the name, description, and options for a
-task.
+`Data` creates a new command data object. This object defines the name, description, and options for a
+command.
 
 ```ts
-const task1Data = Data({
-    name: "task-1",
-    description: "A task that does something",
+const command1Data = Data({
+    name: "command-1",
+    description: "A command that does something",
     options: {
         input: {
             short: "i",
@@ -75,11 +75,11 @@ const task1Data = Data({
 
 ### Command
 
-`Command` creates a new task. It takes a data object and an action function as arguments. The action
-function is what will be executed when the task is run.
+`Command` creates a new command. It takes a data object and an action function as arguments. The action
+function is what will be executed when the command is run.
 
 ```ts
-const task1 = Command(task1Data, (opts) => {
+const command1 = Command(command1Data, (opts) => {
     const { input, output } = opts;
     console.log(`input: ${input}`);
     console.log(`output: ${output}`);
@@ -90,24 +90,24 @@ A nice feature here is the options passed to the action function (`opts` here) a
 
 ### Registering and Running Commands
 
-After creating tasks, you can register them to the command center using the `register` method. Then,
-you can run the tasks using the `run` method.
+After creating commands, you can register them to the command center using the `register` method. Then,
+you can run the commands using the `run` method.
 
 ```ts
-cmdCtr.register(task1);
-cmdCtr.register(task2);
+cmdCtr.register(command1);
+cmdCtr.register(command2);
 cmdCtr.run();
 ```
 
-### Setting the default task
+### Setting the default command
 
-You can set a default task to be run when no task is specified. This is done using the `setDefault`
+You can set a default command to be run when no command is specified. This is done using the `setDefault`
 method.
 
 ```ts
-cmdCtr.setDefault(task1);
+cmdCtr.setDefault(command1);
 // or
-cmdCtr.setDefault("task-1");
+cmdCtr.setDefault("command-1");
 ```
 
 ## Example
@@ -121,9 +121,9 @@ import ora from "ora"; // loading spinner (for funzies)
 
 const cmdCtr = CmdCtr("example"); // or new CmdCtr(), if that's your thing
 
-const task1Data = Data({
-    name: "task-1",
-    description: "A task that does something",
+const command1Data = Data({
+    name: "command-1",
+    description: "A command that does something",
     options: {
         input: {
             short: "i",
@@ -140,15 +140,15 @@ const task1Data = Data({
     },
 });
 
-const task1 = Command(task1Data, (opts) => {
+const command1 = Command(command1Data, (opts) => {
     const { input, output } = opts;
     console.log(`input: ${input}`);
     console.log(`output: ${output}`);
 });
 
-const task2Data = Data({
-    name: "task-2",
-    description: "A task that does something else",
+const command2Data = Data({
+    name: "command-2",
+    description: "A command that does something else",
     options: {
         message: {
             short: "m",
@@ -165,7 +165,7 @@ const task2Data = Data({
     },
 });
 
-const task2 = Command(task2Data, async (opts) => {
+const command2 = Command(command2Data, async (opts) => {
     const { message, loud } = opts;
     const loadingMsg = "...what was i saying again?";
     const spinner = ora(loadingMsg).start();
@@ -176,19 +176,19 @@ const task2 = Command(task2Data, async (opts) => {
     console.log(text);
 });
 
-cmdCtr.register(task1);
-cmdCtr.register(task2);
-cmdCtr.setDefault(task2);
+cmdCtr.register(command1);
+cmdCtr.register(command2);
+cmdCtr.setDefault(command2);
 cmdCtr.run();
 ```
 
-In this example, two tasks are created: `task-1` and `task-2`. `task-1` takes an input file and an
-output file as options, and `task-2` takes a message and a boolean flag as options. The tasks are
+In this example, two commands are created: `command-1` and `command-2`. `command-1` takes an input file and an
+output file as options, and `command-2` takes a message and a boolean flag as options. The commands are
 then registered to the command center and run.
 
-In this case, `task2` is registered AND set as the default task, so it will be run when no task is
-specified but can also be run explicitly by specifying `task-2` as the task to run. If it had not
-been registered, it would run when no task is specified but would not be able to be run explicitly
+In this case, `command2` is registered AND set as the default command, so it will be run when no command is
+specified but can also be run explicitly by specifying `command-2` as the command to run. If it had not
+been registered, it would run when no command is specified but would not be able to be run explicitly
 as a subcommand.
 
 ## License

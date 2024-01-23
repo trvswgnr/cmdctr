@@ -13,40 +13,40 @@ import type {
     CommandFn,
 } from "./types";
 import { errExit, getCliArgs, getValidatedOpts } from "./lib";
-import { DEFAULT_TASK, TASK_NAME } from "./constants";
+import { DEFAULT_COMMAND_NAME, COMMAND_NAME } from "./constants";
 
 const _CmdCtr: CmdCtrFn = (baseCommand) => {
-    const tasks: RegisteredCommands = new Map();
+    const commands: RegisteredCommands = new Map();
     const name = typeof baseCommand === "string" ? baseCommand : "";
     if (typeof baseCommand !== "string") {
         const data = baseCommand;
-        if (!data) return errExit`unknown task "${baseCommand}"`;
-        tasks.set(DEFAULT_TASK, { ...data, isDefault: true });
+        if (!data) return errExit`unknown command "${baseCommand}"`;
+        commands.set(DEFAULT_COMMAND_NAME, { ...data, isDefault: true });
         if (data.registeredCommands.size > 0) {
             let name: string = "";
-            for (const [taskname, cmd] of data.registeredCommands.entries()) {
-                name += ` ${String(taskname)}`;
-                tasks.set(name.trim(), cmd);
+            for (const [commandname, cmd] of data.registeredCommands.entries()) {
+                name += ` ${String(commandname)}`;
+                commands.set(name.trim(), cmd);
             }
         }
     }
     const self: CmdCtrInstance = {
-        register: (task: CommandInstance) => {
-            console.log("registering", task.name);
-            let name: string = task.registeredCommands.size > 0 ? "" : task.name;
-            for (const [taskname, cmd] of task.registeredCommands.entries()) {
-                console.log("registering", taskname);
-                name += ` ${String(taskname)}`;
-                tasks.set(name.trim(), cmd);
+        register: (command: CommandInstance) => {
+            console.log("registering", command.name);
+            let name: string = command.registeredCommands.size > 0 ? "" : command.name;
+            for (const [commandname, cmd] of command.registeredCommands.entries()) {
+                console.log("registering", commandname);
+                name += ` ${String(commandname)}`;
+                commands.set(name.trim(), cmd);
             }
-            return tasks;
+            return commands;
         },
         run: (_args?: string[]) => {
-            if (tasks.size === 0) return errExit`no tasks registered`;
-            const args = getCliArgs(tasks, name, _args);
-            const taskName = args.usingDefaultCommand ? DEFAULT_TASK : args[TASK_NAME];
-            const data = tasks.get(taskName);
-            if (!data) return errExit`unknown task "${taskName}"`;
+            if (commands.size === 0) return errExit`no commands registered`;
+            const args = getCliArgs(commands, name, _args);
+            const commandName = args.usingDefaultCommand ? DEFAULT_COMMAND_NAME : args[COMMAND_NAME];
+            const data = commands.get(commandName);
+            if (!data) return errExit`unknown command "${commandName}"`;
             data.action(getValidatedOpts(data, args));
         },
     };

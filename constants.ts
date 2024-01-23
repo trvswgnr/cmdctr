@@ -1,12 +1,12 @@
 import type { NoFns } from "./types";
 
-/** the key of the default task that is run when no task name is specified */
-export const DEFAULT_TASK = Symbol.for("cmdctr.default_task_name");
-export type DEFAULT_TASK = typeof DEFAULT_TASK;
+/** the key of the default command that is run when no command name is specified */
+export const DEFAULT_COMMAND_NAME = Symbol.for("cmdctr.default_command_name");
+export type DEFAULT_COMMAND_NAME = typeof DEFAULT_COMMAND_NAME;
 
-/** the property holding the name of the task inthe `CliArgs` type */
-export const TASK_NAME = Symbol.for("cmdctr.task_name_key");
-export type TASK_NAME = typeof TASK_NAME;
+/** the property holding the name of the command inthe `CliArgs` type */
+export const COMMAND_NAME = Symbol.for("cmdctr.command_name_key");
+export type COMMAND_NAME = typeof COMMAND_NAME;
 
 const ParseErrorEnum = {
     /**

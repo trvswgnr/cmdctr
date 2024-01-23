@@ -1,7 +1,7 @@
-import { DEFAULT_TASK, TASK_NAME } from "./constants";
+import { DEFAULT_COMMAND_NAME, COMMAND_NAME } from "./constants";
 
 export type CmdCtrInstance = {
-    register: (task: CommandInstance) => RegisteredCommands;
+    register: (command: CommandInstance) => RegisteredCommands;
     run: (args?: string[]) => void | Promise<void>;
 };
 
@@ -9,7 +9,7 @@ export type CmdCtrConstructor = CmdCtrFn & CmdCtrClass;
 export type CmdCtrFn = (baseCommand: CommandInstance | string) => CmdCtrInstance;
 type CmdCtrClass = new (baseCommand: CommandInstance | string) => CmdCtrInstance;
 
-/** data for a task including its options and information about it */
+/** data for a command including its options and information about it */
 export type DataInstance = {
     name: StartsWithAlpha;
     description: string;
@@ -33,14 +33,14 @@ type Alpha = AlphaLower | AlphaUpper;
 /** a string that starts with a letter */
 export type StartsWithAlpha = Explicit<`${Alpha}${string}`>;
 
-/** a task that can be registered and run */
+/** a command that can be registered and run */
 export type CommandInstance = DataInstance & {
     action: (validatedOpts: any) => void;
     register: (cmd: CommandInstance) => RegisteredCommands;
     registeredCommands: RegisteredCommands;
 };
 
-/** the constructor of a task, which can be called with `new` or without */
+/** the constructor of a command, which can be called with `new` or without */
 export type CommandConstructor = CommandFn & CommandClass;
 export type CommandFn = <const D extends DataInstance>(
     data: D,
@@ -51,17 +51,17 @@ type CommandClass = new <const D extends DataInstance>(
     action: Action<D>,
 ) => CommandInstance;
 
-/** the action function of a task */
+/** the action function of a command */
 export type Action<T extends DataInstance> = (
     args: MaskOpts<ValidatedOpts<T>>,
 ) => void | Promise<void>;
 
 export type RegisteredCommands = Map<
-    string | DEFAULT_TASK,
+    string | DEFAULT_COMMAND_NAME,
     CommandInstance & { isDefault?: boolean }
 >;
 
-/** the possible options for a task */
+/** the possible options for a command */
 export type CommandOptions = { [long: string]: CommandOption };
 
 type TypeLiteral = "string" | "boolean";
@@ -86,16 +86,16 @@ export type CommandOption =
     | CommandOptionItem<"string", true>
     | CommandOptionItem<"boolean", true>;
 
-/** the validated options passed to the task action */
+/** the validated options passed to the command action */
 type ValidatedOpts<T extends DataInstance> = OptionsFromData<T>;
 
 /** extracts the argument types from the `options` property of `Data` */
 type OptionsFromData<T extends DataInstance> = {
     [K in keyof T["options"]]: T["options"][K] extends { type: "boolean" } ? boolean : string;
-} & { [K in TASK_NAME]: string };
+} & { [K in COMMAND_NAME]: string };
 
 /** the arguments passed to the CLI */
-export type CliArgs = Record<PropertyKey, unknown> & { [K in TASK_NAME]: string } & {
+export type CliArgs = Record<PropertyKey, unknown> & { [K in COMMAND_NAME]: string } & {
     usingDefaultCommand: boolean;
 };
 
@@ -108,7 +108,7 @@ type StrictHelper<T, U> = U extends Widen<T, U> ? T : `ERROR: only known propert
 
 /** removes the `CommandNameKey` property from the type `T` */
 type MaskOpts<T> = T extends infer U
-    ? { [K in keyof U as K extends TASK_NAME ? never : K]: U[K] }
+    ? { [K in keyof U as K extends COMMAND_NAME ? never : K]: U[K] }
     : never;
 type AnyFn = (...args: any[]) => any;
 

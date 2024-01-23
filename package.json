@@ -1,7 +1,7 @@
 {
     "name": "cmdctr",
     "version": "0.1.10",
-    "description": "Quickly create command line tasks with TypeScript",
+    "description": "Quickly create command line commands with TypeScript",
     "author": {
         "name": "Travis Aaron Wagner",
         "email": "dev@techsavvytravvy.com",
@@ -20,6 +20,7 @@
         "test": "echo \"no tests yet\""
     },
     "devDependencies": {
+        "@types/bun": "^1.0.3",
         "@types/node": "^20.10.7",
         "np": "^9.2.0",
         "tsup": "^8.0.1",
@@ -34,7 +35,7 @@
     },
     "keywords": [
         "cli",
-        "task",
+        "command",
         "command",
         "command-line",
         "command-line-interface",

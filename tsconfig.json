@@ -13,6 +13,6 @@
         "moduleResolution": "Bundler",
         "module": "ESNext",
         "noEmit": true,
-        "types": ["@types/node"]
+        "types": ["@types/node", "@types/bun"]
     }
 }

@@ -1,43 +1,43 @@
 import { parseArgs } from "node:util";
 import type { CliArgs, RegisteredCommands, CommandOption } from "./types";
-import { DEFAULT_TASK, ParseError, TASK_NAME } from "./constants";
+import { DEFAULT_COMMAND_NAME, ParseError, COMMAND_NAME } from "./constants";
 
-export function getCliArgs(tasks: RegisteredCommands, name: string, _args?: string[]): CliArgs {
+export function getCliArgs(commands: RegisteredCommands, name: string, _args?: string[]): CliArgs {
     const rawArgs = _args ?? process.argv.slice(2);
-    let usageBase = `\nUsage: ${name} <task> <options>\nCommands:\n`;
-    const tasksList = [...tasks.values()]
-        .map((task) => `  ${task.name}: ${task.description}`)
+    let usageBase = `\nUsage: ${name} <command> <options>\nCommands:\n`;
+    const commandsList = [...commands.values()]
+        .map((command) => `  ${command.name}: ${command.description}`)
         .join("\n");
-    let usage = usageBase + tasksList;
-    let [taskNameRaw, lastTaskNameIndex] = tryToGetTaskName(rawArgs, tasks);
+    let usage = usageBase + commandsList;
+    let [commandNameRaw, lastCommandNameIndex] = tryToGetCommandName(rawArgs, commands);
     let usingDefaultCommand = false;
-    if (!taskNameRaw) {
-        if (!tasks.has(DEFAULT_TASK)) {
-            return errExit`1missing task\n${usage}`;
+    if (!commandNameRaw) {
+        if (!commands.has(DEFAULT_COMMAND_NAME)) {
+            return errExit`1missing command\n${usage}`;
         }
-        taskNameRaw = tasks.get(DEFAULT_TASK)!.name;
+        commandNameRaw = commands.get(DEFAULT_COMMAND_NAME)!.name;
         usingDefaultCommand = true;
     }
-    let taskName = taskNameRaw ?? "";
-    if (!tasks.has(taskName)) {
-        if (!tasks.has(DEFAULT_TASK)) {
-            return errExit`2missing task\n${usage}`;
+    let commandName = commandNameRaw ?? "";
+    if (!commands.has(commandName)) {
+        if (!commands.has(DEFAULT_COMMAND_NAME)) {
+            return errExit`2missing command\n${usage}`;
         }
-        taskName = tasks.get(DEFAULT_TASK)!.name;
+        commandName = commands.get(DEFAULT_COMMAND_NAME)!.name;
         usingDefaultCommand = true;
     }
-    let task = tasks.get(taskName);
-    if (!task) {
-        if (!tasks.has(DEFAULT_TASK)) {
-            return errExit`3missing task\n${usage}`;
+    let command = commands.get(commandName);
+    if (!command) {
+        if (!commands.has(DEFAULT_COMMAND_NAME)) {
+            return errExit`3missing command\n${usage}`;
         }
-        task = tasks.get(DEFAULT_TASK);
+        command = commands.get(DEFAULT_COMMAND_NAME);
         usingDefaultCommand = true;
     }
-    if (!task) {
-        return errExit`4missing task\n${usage}`;
+    if (!command) {
+        return errExit`4missing command\n${usage}`;
     }
-    const options = task.options;
+    const options = command.options;
     const usageOptions = Object.entries(options)
         .map(([long, option]) => {
             let usageOption = `  --${long}`;
@@ -51,20 +51,20 @@ export function getCliArgs(tasks: RegisteredCommands, name: string, _args?: stri
             return usageOption;
         })
         .join("\n");
-    const nameAndCommandName = usingDefaultCommand ? name : `${name} ${taskName}`;
+    const nameAndCommandName = usingDefaultCommand ? name : `${name} ${commandName}`;
     usage = `\nUsage: ${nameAndCommandName} <options>\nOptions:\n`;
     usage += usageOptions;
 
-    const taskArgs = rawArgs.slice(lastTaskNameIndex);
-    const taskConfig = {
+    const commandArgs = rawArgs.slice(lastCommandNameIndex);
+    const commandConfig = {
         options,
-        args: taskArgs,
+        args: commandArgs,
     };
-    let parsed: ReturnType<typeof parseArgs<typeof taskConfig>>;
+    let parsed: ReturnType<typeof parseArgs<typeof commandConfig>>;
     try {
-        parsed = parseArgs(taskConfig);
+        parsed = parseArgs(commandConfig);
     } catch (e) {
-        const err = ParseError.from(e, usingDefaultCommand ? name : taskName);
+        const err = ParseError.from(e, usingDefaultCommand ? name : commandName);
         return errExit`${err.message}\n${usage}`;
     }
     const args = parsed.values as Record<PropertyKey, unknown>;
@@ -84,27 +84,27 @@ export function getCliArgs(tasks: RegisteredCommands, name: string, _args?: stri
         return errExit`missing required option${s} ${listify(errors)}\n${usage}`;
     }
 
-    return Object.assign(args, { [TASK_NAME]: taskName, usingDefaultCommand });
+    return Object.assign(args, { [COMMAND_NAME]: commandName, usingDefaultCommand });
 }
 
-// task name could be the first argument, or it could be a series of commands and subcommands
-function tryToGetTaskName(args: string[], tasks: RegisteredCommands) {
+// command name could be the first argument, or it could be a series of commands and subcommands
+function tryToGetCommandName(args: string[], commands: RegisteredCommands) {
     if (args.length === 0) return [null, 0] as const;
     const firstArg = args[0] ?? "";
-    if (tasks.has(firstArg)) return [firstArg, 1] as const;
-    const taskNames = new Set(tasks.keys());
-    let taskName = "";
+    if (commands.has(firstArg)) return [firstArg, 1] as const;
+    const commandNames = new Set(commands.keys());
+    let commandName = "";
     let i = 0;
     for (const arg of args) {
         i++;
-        taskName += arg;
-        if (taskNames.has(taskName)) return [taskName, i] as const;
-        taskName += " ";
+        commandName += arg;
+        if (commandNames.has(commandName)) return [commandName, i] as const;
+        commandName += " ";
     }
     return [null, 0] as const;
 }
 
-/** validates the options passed to a task */
+/** validates the options passed to a command */
 export function getValidatedOpts<const T>(data: any, args: T) {
     if (typeof args !== "object" || args === null) {
         return errExit`args is not an object`;
@@ -133,9 +133,14 @@ export function errExit(_strings?: string | TemplateStringsArray, ...values: unk
     const strings =
         _strings === undefined ? [] : typeof _strings === "string" ? [_strings] : _strings;
     const message = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), "");
+    let m = "unknown error";
     if (message) {
         const errMessage = getErrorMessage();
-        console.log(`${red(`${errMessage}:`)} ${message}`);
+        m = `${red(`${errMessage}:`)} ${message}`;
+        console.log(m);
+    }
+    if (process.env.NODE_ENV === "test") {
+        throw new Error(m);
     }
     return process.exit(1);
 }
