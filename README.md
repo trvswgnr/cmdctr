@@ -1,9 +1,20 @@
 # Command Center
 
-Command Center (`cmdctr`) is a no-frills library for TypeScript and JavaScript that provides a simple, yet flexible way to create
-command line interfaces (CLI). It allows you to define commands with specific options and actions, and
-then run these commands from the command line. Type safety is built in, so you can be sure that your
-commands are being run with the correct options.
+<!-- start badges -->
+[![github latest release](https://badgen.net/github/tag/trvswgnr/cmdctr?label=latest&cache=600)](https://github.com/trvswgnr/bs5-lightbox/releases/latest)
+[![npm version](https://badgen.net/npm/v/cmdctr?cache=600)](https://www.npmjs.com/package/cmdctr)
+![npm weekly downloads](https://img.shields.io/npm/dw/cmdctr)
+![dependencies](https://img.shields.io/badge/dependencies-0-orange)
+[![license](https://img.shields.io/github/license/trvswgnr/cmdctr)](LICENSE)
+[![open issues](https://badgen.net/github/open-issues/trvswgnr/cmdctr?label=issues)](https://github.com/trvswgnr/cmdctr/issues)
+![gzip size](https://img.shields.io/badge/gzip%20size-2.8%20KB-8A2BE2)
+![follow on xitter](https://img.shields.io/twitter/follow/techsavvytravvy?style=social)
+<!-- end badges -->
+
+Command Center (`cmdctr`) is a no-frills library for TypeScript and JavaScript that provides a
+simple, yet flexible way to create command line interfaces (CLI). It allows you to define commands
+with specific options and actions, and then run these commands from the command line. Type safety is
+built in, so you can be sure that your commands are being run with the correct options.
 
 > [!WARNING]
 >
@@ -11,13 +22,19 @@ commands are being run with the correct options.
 
 #### What it is
 
-`cmdctr` is a focused, streamlined tool for creating CLI apps without unnecessary complexity. It's heavily focused on inferred types and safety, making it ideal for rapid development. `cmdctr` is great for creating commands with specific options and actions, and executing those commands from the command line.
+`cmdctr` is a focused, streamlined tool for creating CLI apps without unnecessary complexity. It's
+heavily focused on inferred types and safety, making it ideal for rapid development. `cmdctr` is
+great for creating commands with specific options and actions, and executing those commands from the
+command line.
 
 `cmdctr` has zero external dependencies, making it lightweight and easy to include in any project.
 
 #### What it isn't
 
-You won't find some of the cool features that often come bundled with CLI builder libraries. There are no color utilities, loading spinners, menus, events, or progress bars. Many established libraries for those needs already exist. Instead, `cmdctr` is built to work seamlessly alongside these specialized packages, allowing you to integrate only what you need.
+You won't find some of the cool features that often come bundled with CLI builder libraries. There
+are no color utilities, loading spinners, menus, events, or progress bars. Many established
+libraries for those needs already exist. Instead, `cmdctr` is built to work seamlessly alongside
+these specialized packages, allowing you to integrate only what you need.
 
 ## Installation
 
@@ -49,8 +66,8 @@ const cmdCtr = CmdCtr("example");
 
 ### Data
 
-`Data` creates a new command data object. This object defines the name, description, and options for a
-command.
+`Data` creates a new command data object. This object defines the name, description, and options for
+a command.
 
 ```ts
 const command1Data = Data({
@@ -75,8 +92,8 @@ const command1Data = Data({
 
 ### Command
 
-`Command` creates a new command. It takes a data object and an action function as arguments. The action
-function is what will be executed when the command is run.
+`Command` creates a new command. It takes a data object and an action function as arguments. The
+action function is what will be executed when the command is run.
 
 ```ts
 const command1 = Command(command1Data, (opts) => {
@@ -86,12 +103,14 @@ const command1 = Command(command1Data, (opts) => {
 });
 ```
 
-A nice feature here is the options passed to the action function (`opts` here) are validated from the CLI and their types are known at compile-time. This means you get meaningfull type hints and code completion in your editor and can be sure that the arguments are the types you're expecting.
+A nice feature here is the options passed to the action function (`opts` here) are validated from
+the CLI and their types are known at compile-time. This means you get meaningfull type hints and
+code completion in your editor and can be sure that the arguments are the types you're expecting.
 
 ### Registering and Running Commands
 
-After creating commands, you can register them to the command center using the `register` method. Then,
-you can run the commands using the `run` method.
+After creating commands, you can register them to the command center using the `register` method.
+Then, you can run the commands using the `run` method.
 
 ```ts
 cmdCtr.register(command1);
@@ -101,8 +120,8 @@ cmdCtr.run();
 
 ### Setting the default command
 
-You can set a default command to be run when no command is specified. This is done using the `setDefault`
-method.
+You can set a default command to be run when no command is specified. This is done using the
+`setDefault` method.
 
 ```ts
 cmdCtr.setDefault(command1);
@@ -182,14 +201,14 @@ cmdCtr.setDefault(command2);
 cmdCtr.run();
 ```
 
-In this example, two commands are created: `command-1` and `command-2`. `command-1` takes an input file and an
-output file as options, and `command-2` takes a message and a boolean flag as options. The commands are
-then registered to the command center and run.
+In this example, two commands are created: `command-1` and `command-2`. `command-1` takes an input
+file and an output file as options, and `command-2` takes a message and a boolean flag as options.
+The commands are then registered to the command center and run.
 
-In this case, `command2` is registered AND set as the default command, so it will be run when no command is
-specified but can also be run explicitly by specifying `command-2` as the command to run. If it had not
-been registered, it would run when no command is specified but would not be able to be run explicitly
-as a subcommand.
+In this case, `command2` is registered AND set as the default command, so it will be run when no
+command is specified but can also be run explicitly by specifying `command-2` as the command to run.
+If it had not been registered, it would run when no command is specified but would not be able to be
+run explicitly as a subcommand.
 
 ## License
 
