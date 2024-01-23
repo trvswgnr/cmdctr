@@ -96,6 +96,15 @@ type MaskOpts<T> = T extends infer U
     ? { [K in keyof U as K extends TaskNameKey ? never : K]: U[K] }
     : never;
 
+type AnyFn = (...args: any[]) => any;
+
+/** removes all functions from the type `T` */
+export type NoFns<T> = T extends object
+    ? { [K in { [K in keyof T]: T[K] extends AnyFn ? never : K }[keyof T]]: T[K] }
+    : T extends AnyFn
+    ? never
+    : T;
+
 // ! hack to make the type show as its name instead of its definition
 type Explicit<T> = ExplicitHelper1<ExplicitHelper2<T>>;
 type ExplicitHelper1<T> = T & { [EXPLICIT1]?: never };
