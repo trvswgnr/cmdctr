@@ -46,7 +46,7 @@ describe("getCliArgs", () => {
     });
 
     it("should return parsed args when all required options are provided", () => {
-        // same as `test command1 --option1 op`
+        // `$ test command1 --option1 op`
         const args = getCliArgs(registeredCommands, "test", ["cmd1", "--option1", "op"]);
         expect(args).toEqual({
             option1: "op",
@@ -65,7 +65,7 @@ describe("getCliArgs", () => {
             registeredCommands: new Map(),
             register: () => registeredCommands,
         });
-        // same as `test --option1 op`
+        // `$ test --option1 op`
         const args = getCliArgs(registeredCommands, "test", ["--option1", "op"]);
         expect(args).toEqual({
             option1: "op",
