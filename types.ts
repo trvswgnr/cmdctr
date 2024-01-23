@@ -110,14 +110,12 @@ type StrictHelper<T, U> = U extends Widen<T, U> ? T : `ERROR: only known propert
 type MaskOpts<T> = T extends infer U
     ? { [K in keyof U as K extends TASK_NAME ? never : K]: U[K] }
     : never;
+type AnyFn = (...args: any[]) => any;
 
+/** removes all functions from the type `T` */
 export type NoFns<T> = T extends object
-    ? {
-          [K in {
-              [K in keyof T]: T[K] extends (...args: any[]) => any ? never : K;
-          }[keyof T]]: T[K];
-      }
-    : T extends (...args: any[]) => any
+    ? { [K in { [K in keyof T]: T[K] extends AnyFn ? never : K }[keyof T]]: T[K] }
+    : T extends AnyFn
     ? never
     : T;
 
