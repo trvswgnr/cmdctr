@@ -1,7 +1,7 @@
 # Command Center
 
 <!-- start badges -->
-[![github latest release](https://badgen.net/github/tag/trvswgnr/cmdctr?label=latest&cache=600)](https://github.com/trvswgnr/bs5-lightbox/releases/latest)
+[![github latest release](https://badgen.net/github/tag/trvswgnr/cmdctr?label=latest&cache=600)](https://github.com/trvswgnr/cmdctr/releases/latest)
 [![npm version](https://badgen.net/npm/v/cmdctr?cache=600)](https://www.npmjs.com/package/cmdctr)
 ![npm weekly downloads](https://img.shields.io/npm/dw/cmdctr)
 ![dependencies](https://img.shields.io/badge/dependencies-0-orange)
