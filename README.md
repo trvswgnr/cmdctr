@@ -7,7 +7,7 @@
 ![dependencies](https://img.shields.io/badge/dependencies-0-orange)
 [![license](https://img.shields.io/github/license/trvswgnr/cmdctr)](LICENSE)
 [![open issues](https://badgen.net/github/open-issues/trvswgnr/cmdctr?label=issues)](https://github.com/trvswgnr/cmdctr/issues)
-![gzip size](https://img.shields.io/badge/gzip%20size-2.8%20KB-8A2BE2)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/cmdctr)](https://bundlephobia.com/result?p=cmdctr)
 ![follow on xitter](https://img.shields.io/twitter/follow/techsavvytravvy?style=social)
 <!-- end badges -->
 
